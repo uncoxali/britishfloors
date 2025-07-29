@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { signIn, signOut } from 'next-auth/react';
+// import { signIn, signOut } from 'next-auth/react';
 
 interface User {
     id: string;
@@ -30,56 +30,18 @@ export const useAuthStore = create<AuthStore>()(
             login: async (email: string, password: string) => {
                 set({ isLoading: true });
                 try {
-                    const result = await signIn('credentials', {
-                        email,
-                        password,
-                        redirect: false,
-                    });
-
-                    if (result?.error) {
-                        throw new Error(result.error);
-                    }
-
-                    // Get user data from session
-                    const response = await fetch('/api/auth/validate', {
-                        method: 'POST',
+                    // Use Shopify Storefront API for real authentication
+                    const response = await fetch('/api/auth/shopify-login', {
+                        method: 'PUT', // Use PUT for Storefront API login
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ email, password }),
                     });
 
-                    if (response.ok) {
-                        const userData = await response.json();
-                        set({ user: userData, isAuthenticated: true, isLoading: false });
-                    } else {
-                        throw new Error('Invalid credentials');
-                    }
-                } catch (error) {
-                    set({ isLoading: false });
-                    throw error;
-                }
-            },
-
-            register: async (userData) => {
-                set({ isLoading: true });
-                try {
-                    const response = await fetch('/api/auth/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            email: userData.email,
-                            password: userData.password,
-                            firstName: userData.firstName,
-                            lastName: userData.lastName,
-                        }),
-                    });
-
                     if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.error || 'Registration failed');
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Login failed');
                     }
 
                     const { user } = await response.json();
@@ -90,8 +52,37 @@ export const useAuthStore = create<AuthStore>()(
                 }
             },
 
-            logout: async () => {
-                await signOut({ redirect: false });
+            register: async (userData) => {
+                set({ isLoading: true });
+                try {
+                    const response = await fetch('/api/auth/shopify-customer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            email: userData.email,
+                            password: userData.password,
+                            firstName: userData.firstName,
+                            lastName: userData.lastName,
+                            phone: userData.phone || '',
+                        }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Registration failed');
+                    }
+
+                    const { user } = await response.json();
+                    set({ user, isAuthenticated: true, isLoading: false });
+                } catch (error) {
+                    set({ isLoading: false });
+                    throw error;
+                }
+            },
+
+            logout: () => {
                 set({ user: null, isAuthenticated: false });
             },
 

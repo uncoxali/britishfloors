@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
+import PhoneInput from '@/components/ui/PhoneInput';
 import { useAuthStore } from '@/store/auth';
 
 const AccountPage: React.FC = () => {
@@ -12,6 +13,16 @@ const AccountPage: React.FC = () => {
   const router = useRouter();
 
   const [isEditing, setIsEditing] = useState(false);
+  const [shopifyStatus, setShopifyStatus] = useState<{
+    configured: {
+      storeDomain: boolean;
+      adminToken: boolean;
+      storefrontToken: boolean;
+    };
+    ready: boolean;
+    environment: string;
+  } | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -19,14 +30,55 @@ const AccountPage: React.FC = () => {
     phone: user?.phone || '',
   });
 
-  if (!isAuthenticated || !user) {
-    router.push('/auth/login');
-    return null;
+  useEffect(() => {
+    const checkShopifyStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/status');
+        if (response.ok) {
+          const status = await response.json();
+          setShopifyStatus(status);
+        }
+      } catch (error) {
+        console.error('Failed to check Shopify status:', error);
+      }
+    };
+
+    checkShopifyStatus();
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setIsRedirecting(true);
+      if (isAuthenticated === false) {
+        router.push('/');
+      } else {
+        router.push('/auth/login');
+      }
+    }
+  }, [isAuthenticated, user, router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setIsRedirecting(true);
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated || !user || isRedirecting) {
+    return (
+      <Layout>
+        <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+          <div className='text-center py-12'>
+            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto'></div>
+            <h3 className='mt-4 text-lg font-medium text-gray-900'>Loading...</h3>
+          </div>
+        </div>
+      </Layout>
+    );
   }
 
   const handleLogout = () => {
     logout();
-    router.push('/');
   };
 
   const handleSaveProfile = async () => {
@@ -88,7 +140,76 @@ const AccountPage: React.FC = () => {
           </div>
 
           {/* Main Content */}
-          <div className='lg:col-span-2'>
+          <div className='lg:col-span-2 space-y-6'>
+            {/* Shopify Status */}
+            {shopifyStatus && (
+              <div className='bg-white p-6 rounded-lg shadow-sm border'>
+                <h2 className='text-xl font-semibold text-gray-900 mb-4'>
+                  Shopify Connection Status
+                </h2>
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                  <div
+                    className={`p-3 rounded-lg ${
+                      shopifyStatus.configured.storeDomain
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-red-50 border border-red-200'
+                    }`}
+                  >
+                    <div className='flex items-center'>
+                      <div
+                        className={`w-3 h-3 rounded-full mr-2 ${
+                          shopifyStatus.configured.storeDomain ? 'bg-green-500' : 'bg-red-500'
+                        }`}
+                      ></div>
+                      <span className='text-sm font-medium'>Store Domain</span>
+                    </div>
+                  </div>
+                  <div
+                    className={`p-3 rounded-lg ${
+                      shopifyStatus.configured.adminToken
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-red-50 border border-red-200'
+                    }`}
+                  >
+                    <div className='flex items-center'>
+                      <div
+                        className={`w-3 h-3 rounded-full mr-2 ${
+                          shopifyStatus.configured.adminToken ? 'bg-green-500' : 'bg-red-500'
+                        }`}
+                      ></div>
+                      <span className='text-sm font-medium'>Admin API</span>
+                    </div>
+                  </div>
+                  <div
+                    className={`p-3 rounded-lg ${
+                      shopifyStatus.configured.storefrontToken
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-red-50 border border-red-200'
+                    }`}
+                  >
+                    <div className='flex items-center'>
+                      <div
+                        className={`w-3 h-3 rounded-full mr-2 ${
+                          shopifyStatus.configured.storefrontToken ? 'bg-green-500' : 'bg-red-500'
+                        }`}
+                      ></div>
+                      <span className='text-sm font-medium'>Storefront API</span>
+                    </div>
+                  </div>
+                </div>
+                <div className='mt-4 p-3 bg-gray-50 rounded-lg'>
+                  <p className='text-sm text-gray-600'>
+                    <strong>Status:</strong>{' '}
+                    {shopifyStatus.ready ? '✅ Ready for production' : '❌ Configuration required'}
+                  </p>
+                  <p className='text-sm text-gray-600'>
+                    <strong>Environment:</strong> {shopifyStatus.environment}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Profile Information */}
             <div className='bg-white p-6 rounded-lg shadow-sm border'>
               <div className='flex items-center justify-between mb-6'>
                 <h2 className='text-xl font-semibold text-gray-900'>Profile Information</h2>
@@ -142,11 +263,10 @@ const AccountPage: React.FC = () => {
                     <label className='block text-sm font-medium text-gray-700 mb-1'>
                       Phone Number
                     </label>
-                    <input
-                      type='tel'
+                    <PhoneInput
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      onChange={(value) => setFormData({ ...formData, phone: value })}
+                      placeholder='+44 123 456 7890'
                     />
                   </div>
 

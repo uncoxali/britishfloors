@@ -27,7 +27,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [selectedPriceRange, setSelectedPriceRange] = useState(searchParams.get('price') || '');
   const [selectedBrands, setSelectedBrands] = useState<string[]>(
-    searchParams.get('brands')?.split(',') || [],
+    searchParams.get('brands')?.split(',').filter(Boolean) || [],
   );
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'featured');
 
@@ -58,10 +58,54 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     );
   };
 
+  // Check if any filters are active
+  const hasActiveFilters =
+    searchQuery ||
+    selectedCategory ||
+    selectedPriceRange ||
+    selectedBrands.length > 0 ||
+    sortBy !== 'featured';
+
   return (
     <div className='bg-white p-6 rounded-lg shadow-sm border'>
       <div className='mb-6'>
         <h3 className='text-lg font-semibold text-gray-900 mb-4'>Search & Filters</h3>
+
+        {/* Active Filters Display */}
+        {hasActiveFilters && (
+          <div className='mb-4 p-3 bg-blue-50 rounded-lg'>
+            <h4 className='text-sm font-medium text-blue-900 mb-2'>Active Filters:</h4>
+            <div className='space-y-1'>
+              {searchQuery && (
+                <div className='text-sm text-blue-800'>
+                  <strong>Search:</strong> &quot;{searchQuery}&quot;
+                </div>
+              )}
+              {selectedCategory && (
+                <div className='text-sm text-blue-800'>
+                  <strong>Category:</strong> {selectedCategory}
+                </div>
+              )}
+              {selectedPriceRange && (
+                <div className='text-sm text-blue-800'>
+                  <strong>Price:</strong>{' '}
+                  {priceRanges.find((r) => `${r.min}-${r.max}` === selectedPriceRange)?.label}
+                </div>
+              )}
+              {selectedBrands.length > 0 && (
+                <div className='text-sm text-blue-800'>
+                  <strong>Brands:</strong> {selectedBrands.join(', ')}
+                </div>
+              )}
+              {sortBy !== 'featured' && (
+                <div className='text-sm text-blue-800'>
+                  <strong>Sort:</strong>{' '}
+                  {sortBy.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Search Input */}
         <div className='mb-4'>

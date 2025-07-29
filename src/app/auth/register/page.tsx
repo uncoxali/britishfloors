@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
+import PhoneInput from '@/components/ui/PhoneInput';
 import { useAuthStore } from '@/store/auth';
 
 const RegisterPage: React.FC = () => {
@@ -14,6 +15,7 @@ const RegisterPage: React.FC = () => {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
   });
@@ -33,13 +35,28 @@ const RegisterPage: React.FC = () => {
       return;
     }
 
+    // Phone number validation (optional but if provided, validate format)
+    if (formData.phone) {
+      const cleanedPhone = formData.phone.replace(/\s/g, '');
+      // Check if it starts with + and has at least 10 digits
+      if (!cleanedPhone.startsWith('+') || cleanedPhone.length < 11) {
+        setError('Please enter a valid phone number starting with + and country code');
+        return;
+      }
+      // Check if it contains only valid characters
+      if (!/^\+[\d\s]+$/.test(formData.phone)) {
+        setError('Phone number can only contain numbers, spaces, and + symbol');
+        return;
+      }
+    }
+
     try {
       await register({
         email: formData.email,
         password: formData.password,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        phone: '',
+        phone: formData.phone,
       });
       router.push('/account');
     } catch (err: unknown) {
@@ -98,6 +115,18 @@ const RegisterPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
               />
+            </div>
+
+            <div>
+              <label className='block text-sm font-medium text-gray-700 mb-1'>Phone Number</label>
+              <PhoneInput
+                value={formData.phone}
+                onChange={(value) => setFormData({ ...formData, phone: value })}
+                placeholder='+44 123 456 7890'
+              />
+              <p className='text-xs text-gray-500 mt-1'>
+                Optional - for order updates and delivery notifications
+              </p>
             </div>
 
             <div>

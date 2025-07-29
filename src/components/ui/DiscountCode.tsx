@@ -42,7 +42,7 @@ const DiscountCode: React.FC<DiscountCodeProps> = ({
       } else {
         setError('Invalid discount code');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to apply discount code');
     } finally {
       setIsLoading(false);

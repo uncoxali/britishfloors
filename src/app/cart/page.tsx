@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import { useCartStore } from '@/store/cart';
@@ -10,6 +11,7 @@ import { formatPrice } from '@/lib/utils/format';
 import DiscountCode from '@/components/ui/DiscountCode';
 
 const CartPage: React.FC = () => {
+  const router = useRouter();
   const {
     items,
     totalQuantity,
@@ -199,13 +201,10 @@ const CartPage: React.FC = () => {
               </div>
 
               <Button
-                onClick={() => {
-                  // Redirect to Shopify checkout
-                  const checkoutUrl = `https://${process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN}/cart`;
-                  window.location.href = checkoutUrl;
-                }}
+                onClick={() => router.push('/checkout')}
                 className='w-full'
                 size='lg'
+                disabled={items.length === 0}
               >
                 Proceed to Checkout
               </Button>

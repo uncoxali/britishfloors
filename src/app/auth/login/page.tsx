@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
     try {
       await login(email, password);
       router.push('/account');
-    } catch (err) {
+    } catch {
       setError('Invalid email or password');
     }
   };

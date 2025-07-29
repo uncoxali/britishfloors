@@ -1,6 +1,6 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { shopify } from './shopify/config';
+// import { shopify } from './shopify/config';
 
 // Extend the session type
 declare module 'next-auth' {

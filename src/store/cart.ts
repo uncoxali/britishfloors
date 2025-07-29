@@ -129,7 +129,7 @@ export const useCartStore = create<CartStore>()(
                 const { items } = get();
                 let totalQuantity = 0;
                 let subtotalAmount = '0.00';
-                let currencyCode = 'USD';
+                let currencyCode = 'GBP';
 
                 items.forEach(item => {
                     totalQuantity += item.quantity;
@@ -145,6 +145,13 @@ export const useCartStore = create<CartStore>()(
                     subtotal: { amount: subtotalAmount, currencyCode },
                     total: { amount: totalAmount.toFixed(2), currencyCode },
                 });
+
+                // Return the calculated values
+                return {
+                    subtotal: parseFloat(subtotalAmount),
+                    tax: parseFloat(subtotalAmount) * 0.20, // 20% VAT for UK
+                    total: totalAmount,
+                };
             },
         }),
         {
