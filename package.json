@@ -1,0 +1,36 @@
+{
+  "name": "shopify-store",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@shopify/hydrogen-react": "^2025.5.0",
+    "@shopify/shopify-api": "^11.14.1",
+    "@shopify/storefront-api-client": "^1.0.9",
+    "@shopify/storefront-kit-react": "^2023.1.3",
+    "framer-motion": "^12.23.11",
+    "graphql-request": "^7.2.0",
+    "next": "15.4.4",
+    "next-auth": "^4.24.11",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "sharp": "^0.34.3",
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
