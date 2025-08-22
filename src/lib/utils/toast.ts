@@ -49,7 +49,14 @@ export const showInfo = (message: string) => {
 };
 
 // Custom toast with options
-export const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info', options?: any) => {
+export const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info', options?: Partial<{
+    position: "top-right" | "top-center" | "top-left" | "bottom-right" | "bottom-center" | "bottom-left";
+    autoClose: number | false;
+    hideProgressBar: boolean;
+    closeOnClick: boolean;
+    pauseOnHover: boolean;
+    draggable: boolean;
+}>) => {
     const defaultOptions = {
         position: "top-right" as const,
         autoClose: 5000,
