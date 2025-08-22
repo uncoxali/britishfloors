@@ -211,7 +211,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                     </div>
                     <h3 className='text-lg font-semibold text-gray-900 mb-2'>No products found</h3>
                     <p className='text-gray-600 mb-6'>
-                      Try adjusting your filters or search terms to find what you're looking for.
+                      Try adjusting your filters or search terms to find what you&apos;re looking for.
                     </p>
                     <Link
                       href='/products'

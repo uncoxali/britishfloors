@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import { useCartStore } from '@/store/cart';
@@ -11,7 +11,7 @@ import DiscountCode from '@/components/ui/DiscountCode';
 import Image from 'next/image';
 import Link from 'next/link';
 
-const CartPage: React.FC = () => {
+const CartContent: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
@@ -389,6 +389,14 @@ const CartPage: React.FC = () => {
         </div>
       </div>
     </Layout>
+  );
+};
+
+const CartPage: React.FC = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CartContent />
+    </Suspense>
   );
 };
 

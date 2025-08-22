@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShopifyProduct } from '@/lib/types/shopify';
+
 
 interface SampleOrderModalProps {
-  product: ShopifyProduct;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SampleOrderModal: React.FC<SampleOrderModalProps> = ({ product, isOpen, onClose }) => {
+const SampleOrderModal: React.FC<SampleOrderModalProps> = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

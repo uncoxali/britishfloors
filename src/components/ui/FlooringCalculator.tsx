@@ -30,11 +30,6 @@ const FlooringCalculator: React.FC<FlooringCalculatorProps> = ({
   const [area, setArea] = useState<number>(0);
   const [wastagePercentage, setWastagePercentage] = useState<number>(10); // Default 10%
   const [calculation, setCalculation] = useState<CalculationResult | null>(null);
-  const [calculationMethod, setCalculationMethod] = useState<'area' | 'room'>('area');
-  const [roomDimensions, setRoomDimensions] = useState({
-    length: 0,
-    width: 0,
-  });
 
   // Extract product specifications from title or description
   const getProductSpecs = () => {
@@ -44,7 +39,7 @@ const FlooringCalculator: React.FC<FlooringCalculatorProps> = ({
     // Default values
     let packSize = 2.23; // Default pack size in m²
     let thickness = '5mm';
-    let dimensions = '600mm x 120mm';
+    const dimensions = '600mm x 120mm';
     let plankWidth = '120mm';
     let plankLength = '600mm';
 
@@ -64,7 +59,7 @@ const FlooringCalculator: React.FC<FlooringCalculatorProps> = ({
     return { packSize, thickness, dimensions, plankWidth, plankLength };
   };
 
-  const { packSize, thickness, dimensions, plankWidth, plankLength } = getProductSpecs();
+  const { packSize, thickness, plankWidth, plankLength } = getProductSpecs();
 
   // Calculate flooring requirements
   useEffect(() => {
@@ -97,21 +92,6 @@ const FlooringCalculator: React.FC<FlooringCalculatorProps> = ({
 
   const handleWastageChange = (percentage: number) => {
     setWastagePercentage(percentage);
-  };
-
-  const handleRoomDimensionChange = (field: 'length' | 'width', value: string) => {
-    const numValue = parseFloat(value) || 0;
-    setRoomDimensions((prev) => ({
-      ...prev,
-      [field]: numValue,
-    }));
-
-    // Calculate area from room dimensions
-    if (field === 'length') {
-      setArea(numValue * roomDimensions.width);
-    } else {
-      setArea(roomDimensions.length * numValue);
-    }
   };
 
   return (

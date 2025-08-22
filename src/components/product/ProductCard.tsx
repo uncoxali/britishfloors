@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShopifyProduct } from '@/lib/types/shopify';
 import { formatPriceRange, truncateText } from '@/lib/utils/format';
-import Button from '@/components/ui/Button';
+
 import WishlistButton from '@/components/ui/WishlistButton';
 import ClientOnly from '@/components/ui/ClientOnly';
 import { useCartStore } from '@/store/cart';

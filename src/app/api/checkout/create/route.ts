@@ -20,9 +20,6 @@ export async function POST(request: NextRequest) {
             items,
             customer,
             shippingAddress,
-            billingAddress,
-            paymentMethod,
-            discountCode,
             discountAmount,
         } = requestData;
 
@@ -261,7 +258,7 @@ export async function POST(request: NextRequest) {
             total: cart.cost?.totalAmount,
             subtotal: cart.cost?.subtotalAmount,
             tax: cart.cost?.totalTaxAmount,
-            lineItems: cart.lines?.edges?.map((edge: any) => edge.node) || [],
+            lineItems: cart.lines?.edges?.map((edge: { node: { id: string; quantity: number; merchandise: { id: string; title: string; price: { amount: string; currencyCode: string } } } }) => edge.node) || [],
             isMock: false,
             clearCart: true // Signal to frontend to clear the cart
         });

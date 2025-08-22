@@ -1,6 +1,5 @@
 import React from 'react';
 import Layout from '@/components/layout/Layout';
-import Button from '@/components/ui/Button';
 
 const ContactPage: React.FC = () => {
   return (
@@ -26,7 +25,7 @@ const ContactPage: React.FC = () => {
 
             {/* Main Heading */}
             <h1 className='text-4xl lg:text-6xl font-bold text-white mb-6 leading-tight'>
-              Let's{' '}
+              Let&apos;s{' '}
               <span className='bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent'>
                 Connect
               </span>
@@ -63,7 +62,7 @@ const ContactPage: React.FC = () => {
           <div className='bg-white rounded-2xl shadow-lg border border-gray-100 p-8'>
             <div className='mb-8'>
               <h2 className='text-2xl font-bold text-gray-900 mb-2'>Send us a Message</h2>
-              <p className='text-gray-600'>We'll get back to you within 15 minutes</p>
+              <p className='text-gray-600'>We&apos;ll get back to you within 15 minutes</p>
             </div>
 
             <form className='space-y-6'>

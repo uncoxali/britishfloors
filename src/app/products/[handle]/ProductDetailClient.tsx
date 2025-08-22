@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Button from '@/components/ui/Button';
 import FlooringCalculator from '@/components/ui/FlooringCalculator';
 import { useCartStore } from '@/store/cart';
-import { formatPrice } from '@/lib/utils/format';
 import { ShopifyProduct, ShopifyProductVariant } from '@/lib/types/shopify';
 
 interface ProductDetailClientProps {

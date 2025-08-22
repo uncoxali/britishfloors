@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cart';
-import { useWishlistStore } from '@/store/wishlist';
+
 import { useAuthStore } from '@/store/auth';
 import SearchBar from '@/components/ui/SearchBar';
 import ClientOnly from '@/components/ui/ClientOnly';
@@ -13,8 +13,7 @@ const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { totalQuantity } = useCartStore();
-  const { getWishlistCount } = useWishlistStore();
-  const { isAuthenticated, user, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
 
   return (
     <>

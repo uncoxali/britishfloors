@@ -119,7 +119,7 @@ const FAQPage: React.FC = () => {
             {/* Subtitle */}
             <p className='text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed'>
               Find answers to common questions about our flooring products, installation services,
-              and customer support. Can't find what you're looking for? Contact our team.
+              and customer support. Can&apos;t find what you&apos;re looking for? Contact our team.
             </p>
 
             {/* Stats */}
@@ -230,7 +230,7 @@ const FAQPage: React.FC = () => {
             </div>
             <h2 className='text-2xl font-bold text-gray-900 mb-4'>Still Have Questions?</h2>
             <p className='text-gray-600 mb-8 max-w-2xl mx-auto'>
-              Can't find what you're looking for? Our customer service team is here to help you find
+              Can&apos;t find what you&apos;re looking for? Our customer service team is here to help you find
               the perfect flooring solution for your space.
             </p>
             <div className='flex flex-col sm:flex-row gap-4 justify-center'>

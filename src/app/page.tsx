@@ -1,15 +1,12 @@
 import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import Layout from '@/components/layout/Layout';
-import ProductCard from '@/components/product/ProductCard';
 import SpecialOffersGrid from '@/components/product/SpecialOffersGrid';
 import { shopifyApi } from '@/lib/shopify/api';
 import { ShopifyProduct } from '@/lib/types/shopify';
 
 export default async function HomePage() {
   let products: ShopifyProduct[] = [];
-  let error: string | null = null;
 
   try {
     const response = await shopifyApi.getProducts(8);
@@ -17,7 +14,6 @@ export default async function HomePage() {
     console.log('Loaded products:', products.length);
     console.log('Sample product:', products[0]);
   } catch (err) {
-    error = 'Failed to load products';
     console.error('Error loading products:', err);
   }
 
