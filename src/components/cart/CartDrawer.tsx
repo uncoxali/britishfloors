@@ -89,7 +89,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
       const responseData = await response.json();
 
       if (response.ok) {
-        const { checkoutUrl, isMock } = responseData;
+        const { checkoutUrl, isMock, clearCart: shouldClearCart } = responseData;
+
+        // Clear cart before redirect since user is going to checkout
+        if (shouldClearCart || !isMock) {
+          clearCart();
+        }
 
         if (isMock) {
           // For development/mock mode, redirect to cart with success message

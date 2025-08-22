@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
         // Get Shopify credentials from environment variables
         const SHOPIFY_STORE_DOMAIN = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
         const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
+        const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
         // Check if we're in development mode or if Shopify credentials are missing
         const isDevelopment = process.env.NODE_ENV === 'development';
@@ -90,7 +91,8 @@ export async function POST(request: NextRequest) {
             isDevelopment,
             hasShopifyCredentials,
             storeDomain: SHOPIFY_STORE_DOMAIN,
-            hasToken: !!SHOPIFY_STOREFRONT_ACCESS_TOKEN
+            hasToken: !!SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+            hasAdminToken: !!SHOPIFY_ADMIN_ACCESS_TOKEN
         });
 
         // Only use mock checkout if Shopify credentials are completely missing
@@ -114,80 +116,50 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Create Shopify checkout line items with enhanced product information
-        const lineItems = items.map((item: {
-            variantId: string;
-            quantity: number;
-            title: string;
-            variantTitle: string;
-            price: { amount: string; currencyCode: string };
-        }) => ({
-            variantId: item.variantId,
-            quantity: item.quantity,
-            // Include additional product information for better Shopify integration
-            customAttributes: [
-                { key: 'product_title', value: item.title },
-                { key: 'variant_title', value: item.variantTitle },
-                { key: 'price_per_unit', value: item.price.amount },
-                { key: 'currency', value: item.price.currencyCode }
-            ]
-        }));
-
-        console.log('Creating Shopify checkout with:', {
-            storeDomain: SHOPIFY_STORE_DOMAIN,
-            lineItemsCount: lineItems.length,
-            customerEmail: customer?.email,
-            lineItems: lineItems.map((item: { variantId: string; quantity: number; customAttributes: any[] }) => ({
-                variantId: item.variantId,
-                quantity: item.quantity,
-                customAttributes: item.customAttributes
-            }))
-        });
-
-        // Create checkout session using Shopify Storefront API with enhanced mutation
-        const checkoutMutation = `
-            mutation checkoutCreate($input: CheckoutCreateInput!) {
-                checkoutCreate(input: $input) {
-                    checkout {
+        // Create cart using Shopify Storefront API
+        const createCartMutation = `
+            mutation cartCreate($input: CartInput!) {
+                cartCreate(input: $input) {
+                    cart {
                         id
-                        webUrl
-                        totalPrice {
-                            amount
-                            currencyCode
-                        }
-                        subtotalPrice {
-                            amount
-                            currencyCode
-                        }
-                        totalTax {
-                            amount
-                            currencyCode
-                        }
-                        shippingLine {
-                            price {
+                        checkoutUrl
+                        cost {
+                            totalAmount {
+                                amount
+                                currencyCode
+                            }
+                            subtotalAmount {
+                                amount
+                                currencyCode
+                            }
+                            totalTaxAmount {
                                 amount
                                 currencyCode
                             }
                         }
-                        lineItems(first: 250) {
+                        lines(first: 250) {
                             edges {
                                 node {
                                     id
-                                    title
-                                    variant {
-                                        id
-                                        title
-                                        price {
-                                            amount
-                                            currencyCode
+                                    quantity
+                                    merchandise {
+                                        ... on ProductVariant {
+                                            id
+                                            title
+                                            price {
+                                                amount
+                                                currencyCode
+                                            }
+                                            product {
+                                                title
+                                            }
                                         }
                                     }
-                                    quantity
                                 }
                             }
                         }
                     }
-                    checkoutUserErrors {
+                    userErrors {
                         code
                         field
                         message
@@ -196,123 +168,102 @@ export async function POST(request: NextRequest) {
             }
         `;
 
-        // Prepare shipping address for Shopify
-        const shopifyShippingAddress = {
-            firstName: shippingAddress.firstName,
-            lastName: shippingAddress.lastName,
-            address1: shippingAddress.address1,
-            address2: shippingAddress.address2 || '',
-            city: shippingAddress.city,
-            province: shippingAddress.state,
-            zip: shippingAddress.zipCode,
-            country: shippingAddress.country || 'GB',
-            phone: shippingAddress.phone,
+        // Prepare cart line items with correct format
+        const cartLineItems = items.map((item: {
+            variantId: string;
+            quantity: number;
+            title: string;
+            variantTitle: string;
+            price: { amount: string; currencyCode: string };
+        }) => ({
+            merchandiseId: item.variantId,
+            quantity: item.quantity
+        }));
+
+        console.log('Creating Shopify cart with:', {
+            storeDomain: SHOPIFY_STORE_DOMAIN,
+            lineItemsCount: cartLineItems.length,
+            customerEmail: customer?.email
+        });
+
+        const cartInput = {
+            lines: cartLineItems,
+            buyerIdentity: {
+                email: customer.email,
+                countryCode: shippingAddress.country || 'GB'
+            }
         };
 
-        // Prepare billing address for Shopify
-        const shopifyBillingAddress = {
-            firstName: billingAddress.firstName,
-            lastName: billingAddress.lastName,
-            address1: billingAddress.address1,
-            address2: billingAddress.address2 || '',
-            city: billingAddress.city,
-            province: billingAddress.state,
-            zip: billingAddress.zipCode,
-            country: billingAddress.country || 'GB',
-            phone: billingAddress.phone,
-        };
-
-        // Create note with order details
-        const orderNote = [
-            `Payment Method: ${paymentMethod}`,
-            `Items: ${items.map((item: { title: string; variantTitle: string; quantity: number }) => `${item.title} (${item.variantTitle}) x${item.quantity}`).join(', ')}`,
-            discountCode ? `Discount Code: ${discountCode}` : '',
-            `Subtotal: £${subtotal.toFixed(2)}`,
-            `Shipping: £${shipping.toFixed(2)}`,
-            `Tax: £${tax.toFixed(2)}`,
-            `Total: £${total.toFixed(2)}`
-        ].filter(Boolean).join(' | ');
-
-        const response = await fetch(`https://${SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`, {
+        const cartResponse = await fetch(`https://${SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_ACCESS_TOKEN,
             },
             body: JSON.stringify({
-                query: checkoutMutation,
+                query: createCartMutation,
                 variables: {
-                    input: {
-                        lineItems,
-                        email: customer.email,
-                        shippingAddress: shopifyShippingAddress,
-                        billingAddress: shopifyBillingAddress,
-                        note: orderNote,
-                        // Include additional checkout options
-                        presentmentCurrencyCode: 'GBP',
-                        // Add shipping rate if available
-                        shippingRateHandle: shipping === 0 ? 'free_shipping' : 'standard_shipping',
-                    },
+                    input: cartInput,
                 },
             }),
         });
 
-        if (!response.ok) {
-            console.error('Shopify API response not ok:', response.status, response.statusText);
-            const errorText = await response.text();
-            console.error('Shopify API error response:', errorText);
+        if (!cartResponse.ok) {
+            console.error('Shopify cart API response not ok:', cartResponse.status, cartResponse.statusText);
+            const errorText = await cartResponse.text();
+            console.error('Shopify cart API error response:', errorText);
             return NextResponse.json(
-                { error: `Shopify API error: ${response.status} ${response.statusText}` },
+                { error: `Shopify cart API error: ${cartResponse.status} ${cartResponse.statusText}` },
                 { status: 500 }
             );
         }
 
-        const data = await response.json();
-        console.log('Shopify API response:', data);
+        const cartData = await cartResponse.json();
+        console.log('Shopify cart API response:', cartData);
 
-        if (data.errors) {
-            console.error('Shopify checkout error:', data.errors);
+        if (cartData.errors) {
+            console.error('Shopify cart creation error:', cartData.errors);
             return NextResponse.json(
-                { error: 'Failed to create checkout session: ' + data.errors[0]?.message },
+                { error: 'Failed to create cart: ' + cartData.errors[0]?.message },
                 { status: 500 }
             );
         }
 
-        if (data.data?.checkoutCreate?.checkoutUserErrors?.length > 0) {
-            const errors = data.data.checkoutCreate.checkoutUserErrors;
-            console.error('Checkout user errors:', errors);
+        if (cartData.data?.cartCreate?.userErrors?.length > 0) {
+            const errors = cartData.data.cartCreate.userErrors;
+            console.error('Cart user errors:', errors);
             return NextResponse.json(
                 { error: errors[0].message },
                 { status: 400 }
             );
         }
 
-        const checkout = data.data?.checkoutCreate?.checkout;
+        const cart = cartData.data?.cartCreate?.cart;
 
-        if (!checkout?.webUrl) {
-            console.error('No checkout URL in response:', data);
+        if (!cart?.checkoutUrl) {
+            console.error('No checkout URL in cart response:', cartData);
             return NextResponse.json(
                 { error: 'Failed to create checkout URL' },
                 { status: 500 }
             );
         }
 
-        console.log('Checkout created successfully:', {
-            checkoutId: checkout.id,
-            checkoutUrl: checkout.webUrl,
-            totalPrice: checkout.totalPrice,
-            lineItemsCount: checkout.lineItems?.edges?.length || 0
+        console.log('Cart created successfully:', {
+            cartId: cart.id,
+            checkoutUrl: cart.checkoutUrl,
+            totalAmount: cart.cost?.totalAmount,
+            lineItemsCount: cart.lines?.edges?.length || 0
         });
 
         return NextResponse.json({
-            checkoutUrl: checkout.webUrl,
-            checkoutId: checkout.id,
-            total: checkout.totalPrice,
-            subtotal: checkout.subtotalPrice,
-            tax: checkout.totalTax,
-            shipping: checkout.shippingLine?.price,
-            lineItems: checkout.lineItems?.edges?.map((edge: any) => edge.node) || [],
-            isMock: false
+            checkoutUrl: cart.checkoutUrl,
+            checkoutId: cart.id,
+            total: cart.cost?.totalAmount,
+            subtotal: cart.cost?.subtotalAmount,
+            tax: cart.cost?.totalTaxAmount,
+            lineItems: cart.lines?.edges?.map((edge: any) => edge.node) || [],
+            isMock: false,
+            clearCart: true // Signal to frontend to clear the cart
         });
 
     } catch (error) {
