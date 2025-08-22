@@ -4,13 +4,23 @@ import Footer from './Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
+  // Enable or disable the standard page container
+  useContainer?: boolean;
+  // Override container classes when needed
+  containerClassName?: string;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC<LayoutProps> = ({
+  children,
+  useContainer = true,
+  containerClassName = 'container mx-auto px-4 sm:px-6 lg:px-8',
+}) => {
   return (
     <div className='min-h-screen flex flex-col'>
       <Header />
-      <main className='flex-1 pt-28'>{children}</main>
+      <main className='flex-1 pt-28'>
+        {useContainer ? <div className={containerClassName}>{children}</div> : children}
+      </main>
       <Footer />
     </div>
   );
