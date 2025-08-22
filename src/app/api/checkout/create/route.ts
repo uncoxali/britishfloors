@@ -31,9 +31,21 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        console.log('Customer data received:', customer);
+
         if (!customer?.email) {
+            console.error('Customer email missing:', customer);
             return NextResponse.json(
                 { error: 'Customer email is required' },
+                { status: 400 }
+            );
+        }
+
+        // Validate customer data structure
+        if (!customer.id || !customer.firstName || !customer.lastName) {
+            console.error('Incomplete customer data:', customer);
+            return NextResponse.json(
+                { error: 'Incomplete customer information. Please log in again.' },
                 { status: 400 }
             );
         }

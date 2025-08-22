@@ -30,6 +30,14 @@ const CartContent: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderId, setOrderId] = useState('');
 
+  // Debug user data
+  useEffect(() => {
+    console.log('Cart page - Auth state:', { user, isAuthenticated });
+    if (user) {
+      console.log('User data in cart:', user);
+    }
+  }, [user, isAuthenticated]);
+
   // Check for success message from checkout
   useEffect(() => {
     const success = searchParams.get('success');
@@ -57,6 +65,15 @@ const CartContent: React.FC = () => {
       return;
     }
 
+    // Validate user data before checkout
+    if (!user.email) {
+      alert('User email is missing. Please log in again.');
+      router.push('/auth/login?redirect=/cart');
+      return;
+    }
+
+    console.log('User data for checkout:', user);
+
     // Validate cart before proceeding
     const cartValidation = validateCart();
     if (!cartValidation.isValid) {
@@ -67,38 +84,48 @@ const CartContent: React.FC = () => {
     setIsProcessing(true);
     try {
       // Create Shopify checkout directly
+      const checkoutData = {
+        items,
+        customer: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          phone: user.phone || '',
+        },
+        shippingAddress: {
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          address1: 'Please update in checkout',
+          city: 'Please update in checkout',
+          state: 'Please update in checkout',
+          zipCode: 'Please update in checkout',
+          country: 'GB',
+          phone: user.phone || '',
+        },
+        billingAddress: {
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          address1: 'Please update in checkout',
+          city: 'Please update in checkout',
+          state: 'Please update in checkout',
+          zipCode: 'Please update in checkout',
+          country: 'GB',
+          phone: user.phone || '',
+        },
+        paymentMethod: 'card',
+        discountCode,
+        discountAmount,
+      };
+
+      console.log('Checkout request data:', checkoutData);
+
       const response = await fetch('/api/checkout/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          items,
-          customer: user,
-          shippingAddress: {
-            firstName: user.firstName || '',
-            lastName: user.lastName || '',
-            address1: 'Please update in checkout',
-            city: 'Please update in checkout',
-            state: 'Please update in checkout',
-            zipCode: 'Please update in checkout',
-            country: 'GB',
-            phone: user.phone || '',
-          },
-          billingAddress: {
-            firstName: user.firstName || '',
-            lastName: user.lastName || '',
-            address1: 'Please update in checkout',
-            city: 'Please update in checkout',
-            state: 'Please update in checkout',
-            zipCode: 'Please update in checkout',
-            country: 'GB',
-            phone: user.phone || '',
-          },
-          paymentMethod: 'card',
-          discountCode,
-          discountAmount,
-        }),
+        body: JSON.stringify(checkoutData),
       });
 
       const responseData = await response.json();

@@ -7,6 +7,7 @@ import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import PhoneInput from '@/components/ui/PhoneInput';
 import { useAuthStore } from '@/store/auth';
+import { showError, showSuccess } from '@/lib/utils/toast';
 
 const RegisterPage: React.FC = () => {
   const router = useRouter();
@@ -19,19 +20,17 @@ const RegisterPage: React.FC = () => {
     password: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      showError('Passwords do not match');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      showError('Password must be at least 6 characters long');
       return;
     }
 
@@ -40,12 +39,12 @@ const RegisterPage: React.FC = () => {
       const cleanedPhone = formData.phone.replace(/\s/g, '');
       // Check if it starts with + and has at least 10 digits
       if (!cleanedPhone.startsWith('+') || cleanedPhone.length < 11) {
-        setError('Please enter a valid phone number starting with + and country code');
+        showError('Please enter a valid phone number starting with + and country code');
         return;
       }
       // Check if it contains only valid characters
       if (!/^\+[\d\s]+$/.test(formData.phone)) {
-        setError('Phone number can only contain numbers, spaces, and + symbol');
+        showError('Phone number can only contain numbers, spaces, and + symbol');
         return;
       }
     }
@@ -58,10 +57,14 @@ const RegisterPage: React.FC = () => {
         lastName: formData.lastName,
         phone: formData.phone,
       });
-      router.push('/account');
+      showSuccess('Registration successful! Redirecting to account...');
+      // Add a small delay to ensure state is updated
+      setTimeout(() => {
+        router.push('/account');
+      }, 100);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed';
-      setError(errorMessage);
+      showError(errorMessage);
     }
   };
 
@@ -75,12 +78,6 @@ const RegisterPage: React.FC = () => {
               Join British Floors and start shopping for premium flooring solutions.
             </p>
           </div>
-
-          {error && (
-            <div className='mb-4 p-3 bg-red-50 border border-red-200 rounded-md'>
-              <p className='text-red-600 text-sm'>{error}</p>
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div className='grid grid-cols-2 gap-4'>

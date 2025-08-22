@@ -9,7 +9,9 @@ const SHOPIFY_ADMIN_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2024-01
 // Create a new customer in Shopify
 export async function POST(request: NextRequest) {
     try {
-        const { email, password, firstName, lastName, phone } = await request.json();
+        const requestBody = await request.json();
+
+        const { email, password, firstName, lastName, phone } = requestBody;
 
         if (!email || !password || !firstName || !lastName) {
             return NextResponse.json(
@@ -20,8 +22,6 @@ export async function POST(request: NextRequest) {
 
         // Check if Shopify credentials are configured
         if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_ADMIN_ACCESS_TOKEN) {
-            console.log('Shopify credentials not configured, using fallback mode');
-
             // Fallback: Create a mock customer for development
             const mockCustomer = {
                 id: Date.now().toString(),
@@ -33,11 +33,24 @@ export async function POST(request: NextRequest) {
                 createdAt: new Date().toISOString(),
             };
 
-            return NextResponse.json({
+            // Ensure email field is properly set
+            mockCustomer.email = email;
+
+            const response = {
                 message: 'Customer created successfully (fallback mode)',
-                user: mockCustomer,
+                user: {
+                    id: mockCustomer.id,
+                    email: mockCustomer.email,
+                    firstName: mockCustomer.firstName,
+                    lastName: mockCustomer.lastName,
+                    phone: mockCustomer.phone,
+                    name: mockCustomer.name,
+                    createdAt: mockCustomer.createdAt,
+                },
                 mode: 'fallback',
-            });
+            };
+
+            return NextResponse.json(response);
         }
 
         // Check if customer already exists
@@ -90,7 +103,6 @@ export async function POST(request: NextRequest) {
 
         if (!createCustomerResponse.ok) {
             const errorData = await createCustomerResponse.json();
-            console.error('Shopify customer creation error:', errorData);
             return NextResponse.json(
                 { error: 'Failed to create customer in Shopify' },
                 { status: 500 }
@@ -101,23 +113,25 @@ export async function POST(request: NextRequest) {
         const customer = customerResponse.customer;
 
         // Return customer data without sensitive information
+        // If Shopify doesn't return first_name/last_name, use the input data
         const userData = {
             id: customer.id.toString(),
             email: customer.email,
-            firstName: customer.first_name,
-            lastName: customer.last_name,
-            phone: customer.phone || '',
-            name: `${customer.first_name} ${customer.last_name}`,
+            firstName: customer.first_name || firstName,
+            lastName: customer.last_name || lastName,
+            phone: customer.phone || phone || '',
+            name: `${customer.first_name || firstName} ${customer.last_name || lastName}`.trim(),
             createdAt: customer.created_at,
         };
 
-        return NextResponse.json({
+        const response = {
             message: 'Customer created successfully',
             user: userData,
-        });
+        };
+
+        return NextResponse.json(response);
 
     } catch (error) {
-        console.error('Shopify customer creation error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -168,20 +182,23 @@ export async function GET(request: NextRequest) {
         const customer = data.customers[0];
 
         // Return customer data without sensitive information
+        // Handle missing first_name/last_name from Shopify response
+        const firstName = customer.first_name || customer.display_name?.split(' ')[0] || '';
+        const lastName = customer.last_name || customer.display_name?.split(' ').slice(1).join(' ') || '';
+
         const userData = {
             id: customer.id.toString(),
             email: customer.email,
-            firstName: customer.first_name,
-            lastName: customer.last_name,
+            firstName: firstName,
+            lastName: lastName,
             phone: customer.phone || '',
-            name: `${customer.first_name} ${customer.last_name}`,
+            name: `${firstName} ${lastName}`.trim() || customer.display_name || customer.email,
             createdAt: customer.created_at,
         };
 
         return NextResponse.json({ user: userData });
 
     } catch (error) {
-        console.error('Shopify customer fetch error:', error);
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

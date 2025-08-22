@@ -6,24 +6,24 @@ import { useRouter } from 'next/navigation';
 import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import { useAuthStore } from '@/store/auth';
+import { showError, showSuccess } from '@/lib/utils/toast';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
 
   const { login, isLoading } = useAuthStore();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
     try {
       await login(email, password);
+      showSuccess('Login successful! Redirecting to account...');
       router.push('/account');
     } catch {
-      setError('Invalid email or password');
+      showError('Invalid email or password');
     }
   };
 
@@ -32,12 +32,6 @@ const LoginPage: React.FC = () => {
       <div className='max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         <div className='bg-white p-8 rounded-lg shadow-sm border'>
           <h1 className='text-2xl font-bold text-gray-900 mb-6'>Sign In</h1>
-
-          {error && (
-            <div className='mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded'>
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div>

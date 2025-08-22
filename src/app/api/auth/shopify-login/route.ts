@@ -21,11 +21,12 @@ export async function POST(request: NextRequest) {
         // Check if Shopify credentials are configured
         if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_ADMIN_ACCESS_TOKEN) {
             console.log('Shopify credentials not configured, using fallback mode');
+            console.log('Login attempt for email:', email);
 
             // Fallback: Mock authentication for development
             // In a real app, you would validate against a database
             const mockUser = {
-                id: '1',
+                id: Date.now().toString(),
                 email: email,
                 firstName: 'Demo',
                 lastName: 'User',
@@ -33,6 +34,8 @@ export async function POST(request: NextRequest) {
                 name: 'Demo User',
                 createdAt: new Date().toISOString(),
             };
+
+            console.log('Mock user created for login:', mockUser);
 
             return NextResponse.json({
                 message: 'Login successful (fallback mode)',

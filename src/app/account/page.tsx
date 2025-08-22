@@ -7,9 +7,10 @@ import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import PhoneInput from '@/components/ui/PhoneInput';
 import { useAuthStore } from '@/store/auth';
+import { showSuccess, showError } from '@/lib/utils/toast';
 
 const AccountPage: React.FC = () => {
-  const { user, isAuthenticated, logout, updateProfile, isLoading } = useAuthStore();
+  const { user, isAuthenticated, logout, updateProfile, isLoading, setUserEmail } = useAuthStore();
   const router = useRouter();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -29,6 +30,39 @@ const AccountPage: React.FC = () => {
     email: user?.email || '',
     phone: user?.phone || '',
   });
+
+  // Update form data when user data becomes available
+  useEffect(() => {
+    console.log('Account page - User data changed:', user);
+    console.log('Current auth state:', { user, isAuthenticated, isLoading });
+
+    if (user) {
+      console.log('Setting form data with user:', user);
+
+      // Check if email is missing and try to restore it
+      if (!user.email && typeof window !== 'undefined') {
+        const emailBackup = localStorage.getItem('user-email-backup');
+        console.log('Account page - User email missing, checking backup:', emailBackup);
+        if (emailBackup) {
+          console.log('Account page - Restoring email from backup:', emailBackup);
+          setUserEmail(emailBackup);
+        }
+      }
+
+      setFormData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+      });
+    } else {
+      console.log('No user data available');
+      // Try to get user data from store if available
+      if (isAuthenticated) {
+        console.log('User is authenticated but no user data, checking store...');
+      }
+    }
+  }, [user, isAuthenticated, isLoading, setUserEmail]);
 
   useEffect(() => {
     const checkShopifyStatus = async () => {
@@ -64,13 +98,44 @@ const AccountPage: React.FC = () => {
     }
   }, [isAuthenticated, router]);
 
-  if (!isAuthenticated || !user || isRedirecting) {
+  if (isLoading || (!isAuthenticated && !user) || isRedirecting) {
     return (
       <Layout>
         <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
           <div className='text-center py-12'>
             <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto'></div>
             <h3 className='mt-4 text-lg font-medium text-gray-900'>Loading...</h3>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // If authenticated but no user data, show error
+  if (!user && isAuthenticated) {
+    // Debug localStorage
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('auth-storage');
+      console.log('Account page - localStorage auth-storage:', stored);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          console.log('Account page - Parsed auth data:', parsed);
+        } catch (e) {
+          console.error('Account page - Error parsing stored auth data:', e);
+        }
+      }
+    }
+
+    return (
+      <Layout>
+        <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+          <div className='text-center py-12'>
+            <h3 className='text-lg font-medium text-red-600'>Error loading user data</h3>
+            <p className='text-gray-600 mt-2'>Please try logging in again.</p>
+            <Button onClick={() => router.push('/auth/login')} className='mt-4'>
+              Go to Login
+            </Button>
           </div>
         </div>
       </Layout>
@@ -85,18 +150,21 @@ const AccountPage: React.FC = () => {
     try {
       updateProfile(formData);
       setIsEditing(false);
+      showSuccess('Profile updated successfully!');
     } catch (error) {
-      console.error('Error updating profile:', error);
+      showError('Failed to update profile. Please try again.');
     }
   };
 
   const handleCancelEdit = () => {
-    setFormData({
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phone: user.phone || '',
-    });
+    if (user) {
+      setFormData({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone || '',
+      });
+    }
     setIsEditing(false);
   };
 
@@ -286,13 +354,13 @@ const AccountPage: React.FC = () => {
                       <label className='block text-sm font-medium text-gray-700 mb-1'>
                         First Name
                       </label>
-                      <p className='text-gray-900'>{user.firstName}</p>
+                      <p className='text-gray-900'>{user?.firstName || 'Not provided'}</p>
                     </div>
                     <div>
                       <label className='block text-sm font-medium text-gray-700 mb-1'>
                         Last Name
                       </label>
-                      <p className='text-gray-900'>{user.lastName}</p>
+                      <p className='text-gray-900'>{user?.lastName || 'Not provided'}</p>
                     </div>
                   </div>
 
@@ -300,17 +368,40 @@ const AccountPage: React.FC = () => {
                     <label className='block text-sm font-medium text-gray-700 mb-1'>
                       Email Address
                     </label>
-                    <p className='text-gray-900'>{user.email}</p>
+                    <p className='text-gray-900'>
+                      {user?.email ||
+                        (() => {
+                          // Try to get email from backup if user email is missing
+                          if (typeof window !== 'undefined') {
+                            const emailBackup = localStorage.getItem('user-email-backup');
+                            return emailBackup || 'Not provided';
+                          }
+                          return 'Not provided';
+                        })()}
+                    </p>
+                    {!user?.email &&
+                      typeof window !== 'undefined' &&
+                      localStorage.getItem('user-email-backup') && (
+                        <button
+                          onClick={() => {
+                            const emailBackup = localStorage.getItem('user-email-backup');
+                            if (emailBackup) {
+                              setUserEmail(emailBackup);
+                            }
+                          }}
+                          className='text-sm text-blue-600 hover:text-blue-800 mt-1'
+                        >
+                          Restore email from backup
+                        </button>
+                      )}
                   </div>
 
-                  {user.phone && (
-                    <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>
-                        Phone Number
-                      </label>
-                      <p className='text-gray-900'>{user.phone}</p>
-                    </div>
-                  )}
+                  <div>
+                    <label className='block text-sm font-medium text-gray-700 mb-1'>
+                      Phone Number
+                    </label>
+                    <p className='text-gray-900'>{user?.phone || 'Not provided'}</p>
+                  </div>
                 </div>
               )}
 
