@@ -16,6 +16,7 @@ interface CartStore {
     applyDiscount: (code: string) => void;
     removeDiscount: () => void;
     calculateTotals: () => void;
+    validateCart: () => { isValid: boolean; errors: string[] };
 }
 
 const calculateMoney = (amount1: string, amount2: string): string => {
@@ -44,14 +45,20 @@ export const useCartStore = create<CartStore>()(
                     // Update existing item quantity
                     get().updateQuantity(variant.id, existingItem.quantity + quantity);
                 } else {
+                    // Validate product and variant data before adding
+                    if (!product.id || !variant.id || !variant.price?.amount) {
+                        console.error('Invalid product or variant data:', { product, variant });
+                        return;
+                    }
+
                     // Add new item
                     const newItem: CartItem = {
                         id: `${product.id}-${variant.id}`,
                         variantId: variant.id,
                         productId: product.id,
-                        title: product.title,
-                        handle: product.handle,
-                        variantTitle: variant.title,
+                        title: product.title || 'Unknown Product',
+                        handle: product.handle || '',
+                        variantTitle: variant.title || 'Default Variant',
                         price: variant.price,
                         quantity,
                         image: product.images.edges[0]?.node,
@@ -131,10 +138,18 @@ export const useCartStore = create<CartStore>()(
                 let subtotalAmount = '0.00';
                 let currencyCode = 'GBP';
 
-                items.forEach(item => {
+                // Validate items before calculation
+                const validItems = items.filter(item =>
+                    item.variantId &&
+                    item.quantity > 0 &&
+                    item.price?.amount &&
+                    parseFloat(item.price.amount) > 0
+                );
+
+                validItems.forEach(item => {
                     totalQuantity += item.quantity;
                     subtotalAmount = calculateMoney(subtotalAmount, multiplyMoney(item.price.amount, item.quantity));
-                    currencyCode = item.price.currencyCode;
+                    currencyCode = item.price.currencyCode || 'GBP';
                 });
 
                 const { discountAmount } = get();
@@ -151,6 +166,37 @@ export const useCartStore = create<CartStore>()(
                     subtotal: parseFloat(subtotalAmount),
                     tax: parseFloat(subtotalAmount) * 0.20, // 20% VAT for UK
                     total: totalAmount,
+                };
+            },
+
+            // Add method to validate cart items
+            validateCart: () => {
+                const { items } = get();
+                const errors: string[] = [];
+
+                if (items.length === 0) {
+                    errors.push('Cart is empty');
+                    return { isValid: false, errors };
+                }
+
+                items.forEach((item, index) => {
+                    if (!item.variantId) {
+                        errors.push(`Item ${index + 1}: Missing variant ID`);
+                    }
+                    if (!item.quantity || item.quantity <= 0) {
+                        errors.push(`Item ${index + 1}: Invalid quantity`);
+                    }
+                    if (!item.price?.amount || parseFloat(item.price.amount) <= 0) {
+                        errors.push(`Item ${index + 1}: Invalid price`);
+                    }
+                    if (!item.title) {
+                        errors.push(`Item ${index + 1}: Missing product title`);
+                    }
+                });
+
+                return {
+                    isValid: errors.length === 0,
+                    errors
                 };
             },
         }),

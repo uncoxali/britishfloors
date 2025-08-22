@@ -21,8 +21,8 @@ const SearchBar: React.FC = () => {
           type='text'
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder='Search products...'
-          className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+          placeholder='Search for anything you want'
+          className='w-full pl-10 pr-4 py-2 border border-gray-300 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400'
         />
         <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
           <svg

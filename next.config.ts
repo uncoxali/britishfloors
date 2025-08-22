@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    domains: ['localhost'],
+    unoptimized: true,
   },
 };
 
