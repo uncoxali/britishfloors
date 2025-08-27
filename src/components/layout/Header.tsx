@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cart';
+import { useCartDrawerStore } from '@/store/cartDrawer';
 
 import { useAuthStore } from '@/store/auth';
 import SearchBar from '@/components/ui/SearchBar';
@@ -11,7 +13,7 @@ import CartDrawer from '@/components/cart/CartDrawer';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { isOpen: isCartOpen, open: openCart, close: closeCart } = useCartDrawerStore();
   const { totalQuantity } = useCartStore();
   const { isAuthenticated, isLoading } = useAuthStore();
 
@@ -23,7 +25,13 @@ const Header: React.FC = () => {
           <div className='flex justify-between items-center h-16'>
             {/* Logo */}
             <Link href='/' className='flex items-center space-x-3'>
-              <img src='/images/logo.png' alt='British Floors Logo' className='h-10 w-auto' />
+              <Image
+                src='/images/logo.png'
+                alt='British Floors Logo'
+                width={120}
+                height={40}
+                className='h-10 w-auto'
+              />
             </Link>
 
             {/* Search Bar - Center */}
@@ -35,7 +43,13 @@ const Header: React.FC = () => {
             <div className='flex items-center space-x-4'>
               {/* Phone */}
               <div className='flex items-center space-x-2 text-gray-700'>
-                <img src='/images/svg/phone-icon.svg' alt='Phone' className='h-5 w-5' />
+                <Image
+                  src='/images/svg/phone-icon.svg'
+                  alt='Phone'
+                  width={20}
+                  height={20}
+                  className='h-5 w-5'
+                />
               </div>
 
               {/* Account */}
@@ -48,7 +62,13 @@ const Header: React.FC = () => {
                     className='p-2 text-gray-700 hover:text-gray-900 transition-colors'
                     title='My Account'
                   >
-                    <img src='/images/svg/profile-icon.svg' alt='Profile' className='h-6 w-6' />
+                    <Image
+                      src='/images/svg/profile-icon.svg'
+                      alt='Profile'
+                      width={24}
+                      height={24}
+                      className='h-6 w-6'
+                    />
                   </Link>
                 ) : (
                   <Link
@@ -56,17 +76,29 @@ const Header: React.FC = () => {
                     className='p-2 text-gray-700 hover:text-gray-900 transition-colors'
                     title='Sign In'
                   >
-                    <img src='/images/svg/profile-icon.svg' alt='Sign In' className='h-6 w-6' />
+                    <Image
+                      src='/images/svg/profile-icon.svg'
+                      alt='Sign In'
+                      width={24}
+                      height={24}
+                      className='h-6 w-6'
+                    />
                   </Link>
                 )}
               </ClientOnly>
 
               {/* Cart */}
               <button
-                onClick={() => setIsCartOpen(true)}
+                onClick={openCart}
                 className='relative p-2 text-gray-700 hover:text-gray-900 transition-colors'
               >
-                <img src='/images/svg/iconbasket.svg' alt='Cart' className='h-6 w-6' />
+                <Image
+                  src='/images/svg/iconbasket.svg'
+                  alt='Cart'
+                  width={24}
+                  height={24}
+                  className='h-6 w-6'
+                />
                 <ClientOnly>
                   {totalQuantity > 0 && (
                     <span className='absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium'>
@@ -228,7 +260,7 @@ const Header: React.FC = () => {
       )}
 
       {/* Cart Drawer */}
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <CartDrawer />
     </>
   );
 };

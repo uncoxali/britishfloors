@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Drawer from 'react-modern-drawer';
 import 'react-modern-drawer/dist/index.css';
 import { useCartStore } from '@/store/cart';
+import { useCartDrawerStore } from '@/store/cartDrawer';
 import { useAuthStore } from '@/store/auth';
 import { formatPrice } from '@/lib/utils/format';
 import Button from '@/components/ui/Button';
@@ -11,12 +12,8 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import ClientOnly from '@/components/ui/ClientOnly';
 
-interface CartDrawerProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
+const CartDrawer: React.FC = () => {
+  const { isOpen, close: onClose } = useCartDrawerStore();
   const { items, removeItem, updateQuantity, clearCart, validateCart } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();

@@ -1,16 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-interface SearchFiltersProps {
+interface SearchResultsFiltersProps {
   categories?: string[];
   brands?: string[];
+  totalResults?: number;
+  currentPage?: number;
+  hasNextPage?: boolean;
+  onFiltersChange?: (filters: {
+    search?: string;
+    category?: string;
+    priceRange?: string;
+    brands?: string[];
+    sortBy?: string;
+    limit?: number;
+  }) => void;
 }
 
-const SearchFilters: React.FC<SearchFiltersProps> = ({
-  categories = ['Hardwood', 'Laminate', 'Vinyl', 'Carpet', 'Tile'],
+const SearchResultsFilters: React.FC<SearchResultsFiltersProps> = ({
+  categories = ['Laminate', 'Vinyl (LVT)', 'Engineered Wood', 'Parquet', 'Carpet', 'Tile'],
   brands = ['Shaw', 'Mohawk', 'Armstrong', 'Mannington', 'Tarkett'],
+  totalResults = 0,
+  currentPage = 1,
+  hasNextPage = false,
+  onFiltersChange,
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,13 +38,25 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   );
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'featured');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [resultsPerPage, setResultsPerPage] = useState(parseInt(searchParams.get('limit') || '20'));
 
   const priceRanges = [
-    { min: 0, max: 50, label: 'Under £50' },
+    { min: 0, max: 25, label: 'Under £25' },
+    { min: 25, max: 50, label: '£25 - £50' },
     { min: 50, max: 100, label: '£50 - £100' },
     { min: 100, max: 200, label: '£100 - £200' },
     { min: 200, max: 500, label: '£200 - £500' },
     { min: 500, max: 1000, label: 'Over £500' },
+  ];
+
+  const sortOptions = [
+    { value: 'featured', label: '✨ Featured', icon: '✨' },
+    { value: 'price-low', label: '💰 Price: Low to High', icon: '↗️' },
+    { value: 'price-high', label: '💰 Price: High to Low', icon: '↘️' },
+    { value: 'name-asc', label: '📝 Name: A to Z', icon: '🔤' },
+    { value: 'name-desc', label: '📝 Name: Z to A', icon: '🔤' },
+    { value: 'discount', label: '🏷️ Best Deals', icon: '🏷️' },
+    { value: 'newest', label: '🆕 Newest First', icon: '🆕' },
   ];
 
   const applyFilters = () => {
@@ -40,16 +67,39 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     if (selectedPriceRange) params.set('price', selectedPriceRange);
     if (selectedBrands.length > 0) params.set('brands', selectedBrands.join(','));
     if (sortBy !== 'featured') params.set('sort', sortBy);
+    if (resultsPerPage !== 20) params.set('limit', resultsPerPage.toString());
 
-    router.push(`/products?${params.toString()}`);
+    const newUrl = `/products?${params.toString()}`;
+    router.push(newUrl);
+
+    // Call callback if provided
+    if (onFiltersChange) {
+      onFiltersChange({
+        search: searchQuery,
+        category: selectedCategory,
+        priceRange: selectedPriceRange,
+        brands: selectedBrands,
+        sortBy,
+        limit: resultsPerPage,
+      });
+    }
   };
 
   const clearFilters = () => {
-    setSearchQuery('');
     setSelectedCategory('');
     setSelectedPriceRange('');
     setSelectedBrands([]);
     setSortBy('featured');
+    setResultsPerPage(20);
+
+    const params = new URLSearchParams();
+    if (searchQuery) params.set('search', searchQuery);
+
+    router.push(`/products?${params.toString()}`);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
     router.push('/products');
   };
 
@@ -59,21 +109,22 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     );
   };
 
-  // Check if any filters are active
   const hasActiveFilters =
-    searchQuery ||
-    selectedCategory ||
-    selectedPriceRange ||
-    selectedBrands.length > 0 ||
-    sortBy !== 'featured';
+    selectedCategory || selectedPriceRange || selectedBrands.length > 0 || sortBy !== 'featured';
 
   const activeFiltersCount = [
-    searchQuery,
     selectedCategory,
     selectedPriceRange,
     selectedBrands.length > 0,
     sortBy !== 'featured',
   ].filter(Boolean).length;
+
+  // Auto-expand if there are active filters or search query
+  useEffect(() => {
+    if (hasActiveFilters || searchQuery) {
+      setIsExpanded(true);
+    }
+  }, [hasActiveFilters, searchQuery]);
 
   return (
     <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-lg'>
@@ -97,8 +148,11 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               </svg>
             </div>
             <div>
-              <h3 className='text-xl font-bold text-gray-900'>Advanced Filters</h3>
-              <p className='text-sm text-gray-600'>Refine your search results</p>
+              <h3 className='text-xl font-bold text-gray-900'>Search & Filter</h3>
+              <p className='text-sm text-gray-600'>
+                {totalResults} results found
+                {searchQuery && ` for "${searchQuery}"`}
+              </p>
             </div>
           </div>
 
@@ -111,6 +165,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className='p-2 text-gray-600 hover:text-blue-600 transition-colors'
+              aria-label={isExpanded ? 'Collapse filters' : 'Expand filters'}
             >
               <svg
                 className={`w-5 h-5 transform transition-transform ${
@@ -139,81 +194,40 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         }`}
       >
         <div className='p-6 space-y-6'>
-          {/* Active Filters Display */}
-          {hasActiveFilters && (
+          {/* Quick Actions for Search */}
+          {searchQuery && (
             <div className='bg-blue-100 border border-blue-300 rounded-lg p-4'>
-              <h4 className='text-sm font-semibold text-blue-900 mb-3 flex items-center'>
-                <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-                  />
-                </svg>
-                Active Filters ({activeFiltersCount})
-              </h4>
-              <div className='flex flex-wrap gap-2'>
-                {searchQuery && (
-                  <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-200 text-blue-800'>
-                    Search: &quot;{searchQuery}&quot;
-                  </span>
-                )}
-                {selectedCategory && (
-                  <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-200 text-green-800'>
-                    {selectedCategory}
-                  </span>
-                )}
-                {selectedPriceRange && (
-                  <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-200 text-purple-800'>
-                    {priceRanges.find((r) => `${r.min}-${r.max}` === selectedPriceRange)?.label}
-                  </span>
-                )}
-                {selectedBrands.map((brand) => (
-                  <span
-                    key={brand}
-                    className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-200 text-orange-800'
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center space-x-2'>
+                  <svg
+                    className='w-5 h-5 text-blue-600'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
                   >
-                    {brand}
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                    />
+                  </svg>
+                  <span className='text-sm font-medium text-blue-900'>
+                    Searching for: &ldquo;{searchQuery}&rdquo;
                   </span>
-                ))}
-                {sortBy !== 'featured' && (
-                  <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-200 text-indigo-800'>
-                    Sort: {sortBy.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                  </span>
-                )}
+                </div>
+                <button
+                  onClick={clearSearch}
+                  className='text-blue-600 hover:text-blue-800 text-sm font-medium'
+                >
+                  Clear search ✕
+                </button>
               </div>
             </div>
           )}
 
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {/* Search Input */}
-            <div className='space-y-2'>
-              <label className='text-sm font-semibold text-gray-700 flex items-center'>
-                <svg
-                  className='w-4 h-4 mr-2 text-blue-600'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth={2}
-                    d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
-                  />
-                </svg>
-                Search Products
-              </label>
-              <input
-                type='text'
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder='Enter product name...'
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all'
-              />
-            </div>
-
+          {/* Main Filter Grid */}
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
             {/* Sort Options */}
             <div className='space-y-2'>
               <label className='text-sm font-semibold text-gray-700 flex items-center'>
@@ -237,12 +251,11 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 onChange={(e) => setSortBy(e.target.value)}
                 className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white'
               >
-                <option value='featured'>✨ Featured</option>
-                <option value='price-low'>💰 Price: Low to High</option>
-                <option value='price-high'>💰 Price: High to Low</option>
-                <option value='name-asc'>📝 Name: A to Z</option>
-                <option value='name-desc'>📝 Name: Z to A</option>
-                <option value='newest'>🆕 Newest First</option>
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -309,6 +322,36 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
                 ))}
               </select>
             </div>
+
+            {/* Results Per Page */}
+            <div className='space-y-2'>
+              <label className='text-sm font-semibold text-gray-700 flex items-center'>
+                <svg
+                  className='w-4 h-4 mr-2 text-blue-600'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M4 6h16M4 10h16M4 14h16M4 18h16'
+                  />
+                </svg>
+                Show Per Page
+              </label>
+              <select
+                value={resultsPerPage}
+                onChange={(e) => setResultsPerPage(parseInt(e.target.value))}
+                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white'
+              >
+                <option value={12}>12 items</option>
+                <option value={20}>20 items</option>
+                <option value={40}>40 items</option>
+                <option value={60}>60 items</option>
+              </select>
+            </div>
           </div>
 
           {/* Brand Filter */}
@@ -329,7 +372,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               </svg>
               Brands
             </label>
-            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-32 overflow-y-auto p-3 bg-gray-50 rounded-lg'>
+            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 max-h-32 overflow-y-auto p-3 bg-gray-50 rounded-lg'>
               {brands.map((brand) => (
                 <label
                   key={brand}
@@ -368,25 +411,28 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
               </svg>
               Apply Filters
             </button>
-            <button
-              onClick={clearFilters}
-              className='px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold'
-            >
-              <svg
-                className='w-5 h-5 mr-2 inline'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
+
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className='px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold'
               >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
-                />
-              </svg>
-              Clear All
-            </button>
+                <svg
+                  className='w-5 h-5 mr-2 inline'
+                  fill='none'
+                  stroke='currentColor'
+                  viewBox='0 0 24 24'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={2}
+                    d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16'
+                  />
+                </svg>
+                Clear Filters
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -394,4 +440,4 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
   );
 };
 
-export default SearchFilters;
+export default SearchResultsFilters;

@@ -158,7 +158,7 @@ export const useAuthStore = create<AuthStore>()(
                     if (stored) {
                         try {
                             JSON.parse(stored);
-                        } catch (e) {
+                        } catch {
                             // Silent error handling
                         }
                     }

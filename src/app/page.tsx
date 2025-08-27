@@ -1,9 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
 import Layout from '@/components/layout/Layout';
-import SpecialOffersGrid from '@/components/product/SpecialOffersGrid';
+
 import { shopifyApi } from '@/lib/shopify/api';
 import { ShopifyProduct } from '@/lib/types/shopify';
+import ProductCard from '@/components/product/ProductCard';
 
 export default async function HomePage() {
   let products: ShopifyProduct[] = [];
@@ -70,11 +71,11 @@ export default async function HomePage() {
           </div>
 
           {/* Special Offers Section */}
-          <div className='bg-blue-800 rounded-2xl p-8 relative overflow-hidden'>
+          <div className='bg-blue-800 rounded-2xl p-3 relative overflow-hidden'>
             <div className='relative z-10'>
-              <div className='flex flex-col lg:flex-row items-center gap-8'>
+              <div className='flex flex-col lg:flex-row items-center gap-4'>
                 {/* Special Offers Image */}
-                <div className='lg:w-1/4 flex items-center justify-center h-full'>
+                <div className='lg:w-[10%] 2xl:w-[30%] flex items-center justify-center h-full'>
                   <Image
                     src='/images/product-pers.png'
                     alt='Special Offers'
@@ -85,7 +86,20 @@ export default async function HomePage() {
                 </div>
 
                 {/* Products Grid */}
-                <SpecialOffersGrid products={products} />
+                <div className='lg:w-4/4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+                  {products.length > 0
+                    ? products
+                        .slice(0, 4)
+                        .map((product) => (
+                          <ProductCard
+                            key={product.id}
+                            product={product}
+                            showOrderSample={true}
+                            redirectToProducts={false}
+                          />
+                        ))
+                    : null}
+                </div>
               </div>
             </div>
 
@@ -111,9 +125,11 @@ export default async function HomePage() {
             <div className='group cursor-pointer'>
               <div className='relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300'>
                 <div className='relative overflow-hidden rounded-t-lg'>
-                  <img
+                  <Image
                     src='/images/sample-product.png'
                     alt='Cambridge White Oak Engineered Wood Flooring'
+                    width={600}
+                    height={400}
                     className='w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300'
                   />
                   <div className='absolute inset-0 bg-black bg-opacity-40 flex items-end'>
@@ -131,9 +147,11 @@ export default async function HomePage() {
             <div className='group cursor-pointer'>
               <div className='relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300'>
                 <div className='relative overflow-hidden rounded-t-lg'>
-                  <img
+                  <Image
                     src='/images/sample-product.png'
                     alt='Cambridge White Oak Engineered Wood Flooring'
+                    width={600}
+                    height={400}
                     className='w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300'
                   />
                   <div className='absolute inset-0 bg-black bg-opacity-40 flex items-end'>
@@ -151,9 +169,11 @@ export default async function HomePage() {
             <div className='group cursor-pointer'>
               <div className='relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300'>
                 <div className='relative overflow-hidden rounded-t-lg'>
-                  <img
+                  <Image
                     src='/images/sample-product.png'
                     alt='Light Brown Oak Laminate Herringbone Flooring'
+                    width={600}
+                    height={400}
                     className='w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300'
                   />
                   <div className='absolute inset-0 bg-black bg-opacity-40 flex items-end'>
@@ -171,9 +191,11 @@ export default async function HomePage() {
             <div className='group cursor-pointer'>
               <div className='relative overflow-hidden rounded-lg bg-white shadow-lg hover:shadow-xl transition-shadow duration-300'>
                 <div className='relative overflow-hidden rounded-t-lg'>
-                  <img
+                  <Image
                     src='/images/sample-product.png'
                     alt='Cambridge Natural Oiled Oak Engineered Wood Flooring'
+                    width={600}
+                    height={400}
                     className='w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300'
                   />
                   <div className='absolute inset-0 bg-black bg-opacity-40 flex items-end'>

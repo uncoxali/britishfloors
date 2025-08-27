@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import FlooringCalculator from '@/components/ui/FlooringCalculator';
 import { useCartStore } from '@/store/cart';
+import { useCartDrawerStore } from '@/store/cartDrawer';
 import { ShopifyProduct, ShopifyProductVariant } from '@/lib/types/shopify';
 
 interface ProductDetailClientProps {
@@ -18,6 +19,7 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ product }) =>
   const [isAdding, setIsAdding] = useState(false);
 
   const addItem = useCartStore((state) => state.addItem);
+  const { open: openCart } = useCartDrawerStore();
 
   // Initialize selected options from the first variant
   React.useEffect(() => {
@@ -58,6 +60,8 @@ const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ product }) =>
     setIsAdding(true);
     try {
       addItem(product, selectedVariant, quantity);
+      // Open cart drawer after adding item
+      openCart();
     } catch (error) {
       console.error('Error adding to cart:', error);
     } finally {

@@ -1,10 +1,12 @@
 import React from 'react';
 import Layout from '@/components/layout/Layout';
 import ProductCard from '@/components/product/ProductCard';
-import SearchFilters from '@/components/ui/SearchFilters';
 import Link from 'next/link';
 import { shopifyApi } from '@/lib/shopify/api';
 import { ShopifyProduct } from '@/lib/types/shopify';
+import LeftSidebarFilters from '@/components/ui/LeftSidebarFilters';
+import MobileFiltersWrapper from '@/components/ui/MobileFiltersWrapper';
+import SortByDropdown from '@/components/ui/SortByDropdown';
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -25,7 +27,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const priceRange = resolvedSearchParams.price || '';
   const brands = resolvedSearchParams.brands?.split(',') || [];
   const sortBy = resolvedSearchParams.sort || 'featured';
-  const itemsPerPage = 12;
+  const itemsPerPage = 20;
   const after = page > 1 ? btoa(`arrayconnection:${(page - 1) * itemsPerPage - 1}`) : undefined;
 
   let products: ShopifyProduct[] = [];
@@ -35,12 +37,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   try {
     // Get all products first
     const response = search
-      ? await shopifyApi.searchProducts(search, 100, after) // Get more products for filtering
-      : await shopifyApi.getProducts(100, after); // Get more products for filtering
+      ? await shopifyApi.searchProducts(search, 100, after)
+      : await shopifyApi.getProducts(100, after);
 
     let filteredProducts = response.products.edges.map((edge) => edge.node);
 
-    // Apply category filter (based on title and description)
+    // Apply category filter
     if (category) {
       filteredProducts = filteredProducts.filter(
         (product) =>
@@ -49,7 +51,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       );
     }
 
-    // Apply brand filter (based on title)
+    // Apply brand filter
     if (brands.length > 0) {
       filteredProducts = filteredProducts.filter((product) =>
         brands.some((brand) => product.title.toLowerCase().includes(brand.toLowerCase())),
@@ -62,7 +64,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       filteredProducts = filteredProducts.filter((product) => {
         const price = parseFloat(product.priceRange.minVariantPrice.amount);
         if (max === 1000) {
-          return price >= min; // "Over $500" case
+          return price >= min;
         }
         return price >= min && price <= max;
       });
@@ -91,11 +93,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         filteredProducts.sort((a, b) => b.title.localeCompare(a.title));
         break;
       case 'newest':
-        // Sort by ID (assuming newer products have higher IDs)
         filteredProducts.sort((a, b) => b.id.localeCompare(a.id));
         break;
       default:
-        // Featured - keep original order
         break;
     }
 
@@ -114,59 +114,160 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     console.error('Error loading products:', err);
   }
 
+  // Get unique categories and brands for filters
+  const allProducts = await shopifyApi.getProducts(100);
+  const uniqueCategories = [
+    ...new Set(
+      allProducts.products.edges.map((edge) => {
+        const title = edge.node.title.toLowerCase();
+        if (title.includes('laminate')) return 'Laminate';
+        if (title.includes('vinyl')) return 'Vinyl';
+        if (title.includes('wood')) return 'Wood';
+        if (title.includes('carpet')) return 'Carpet';
+        return 'Other';
+      }),
+    ),
+  ];
+
+  const uniqueBrands = [
+    ...new Set(
+      allProducts.products.edges.map((edge) => {
+        const title = edge.node.title;
+        // Extract brand from title (assuming brand is first word)
+        return title.split(' ')[0];
+      }),
+    ),
+  ];
+
   return (
     <Layout>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        {/* Page Header */}
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-gray-900 mb-2'>
-            {search ? `Search Results for "${search}"` : 'All Products'}
-          </h1>
-          <p className='text-gray-600'>{products.length} products found</p>
-        </div>
-
-        {/* Active Filters */}
-        {(search || category || priceRange || brands.length > 0 || sortBy !== 'featured') && (
-          <div className='mb-6'>
-            <div className='flex items-center gap-2'>
-              <span className='text-sm text-gray-500'>Active filters:</span>
-              <div className='flex flex-wrap gap-2'>
-                {search && (
-                  <span className='inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800'>
-                    Search: {search}
-                  </span>
-                )}
-                {category && (
-                  <span className='inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800'>
-                    Category: {category}
-                  </span>
-                )}
-                {priceRange && (
-                  <span className='inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800'>
-                    Price: {priceRange}
-                  </span>
-                )}
-                {brands.length > 0 && (
-                  <span className='inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800'>
-                    Brands: {brands.join(', ')}
-                  </span>
-                )}
+      <div className='max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        {/* Breadcrumbs */}
+        <nav className='flex mb-6' aria-label='Breadcrumb'>
+          <ol className='inline-flex items-center space-x-1 md:space-x-3'>
+            <li className='inline-flex items-center'>
+              <Link href='/' className='text-gray-700 hover:text-blue-600'>
+                Home
+              </Link>
+            </li>
+            <li>
+              <div className='flex items-center'>
+                <svg className='w-6 h-6 text-gray-400' fill='currentColor' viewBox='0 0 20 20'>
+                  <path
+                    fillRule='evenodd'
+                    d='M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z'
+                    clipRule='evenodd'
+                  />
+                </svg>
+                <span className='text-gray-500'>
+                  {search ? `Search results for: '${search}'` : 'Products'}
+                </span>
               </div>
-            </div>
-          </div>
-        )}
+            </li>
+          </ol>
+        </nav>
 
-        <div className='grid grid-cols-1 lg:grid-cols-4 gap-8'>
-          {/* Filters Sidebar */}
-          <div className='lg:col-span-1'>
-            <div className='bg-white rounded-lg shadow p-6 sticky top-8'>
-              <h3 className='text-lg font-semibold text-gray-900 mb-4'>Filters</h3>
-              <SearchFilters />
-            </div>
+        {/* Main Content Layout */}
+        <div className='flex gap-8'>
+          {/* Left Sidebar - Filters */}
+          <div className='w-80 flex-shrink-0 hidden lg:block'>
+            <LeftSidebarFilters
+              categories={uniqueCategories}
+              brands={uniqueBrands}
+              totalResults={products.length}
+            />
           </div>
 
-          {/* Products Grid */}
-          <div className='lg:col-span-3'>
+          {/* Right Content - Products */}
+          <div className='flex-1 min-w-0'>
+            {/* Page Header */}
+            <div className='mb-6'>
+              <h1 className='text-3xl font-bold text-blue-900 mb-2'>
+                {search ? `Search results for '${search}'` : 'All Products'}
+              </h1>
+              <p className='text-gray-600'>
+                {search
+                  ? `${products.length} results found`
+                  : `${products.length} products available`}
+              </p>
+            </div>
+
+            {/* Mobile Filters Button - Show on smaller screens */}
+            <div className='lg:hidden mb-6'>
+              <MobileFiltersWrapper
+                categories={uniqueCategories}
+                brands={uniqueBrands}
+                totalResults={products.length}
+              />
+            </div>
+
+            {/* Active Filters Display */}
+            {(search || category || priceRange || brands.length > 0 || sortBy !== 'featured') && (
+              <div className='mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4'>
+                <h3 className='text-sm font-semibold text-blue-900 mb-3 flex items-center'>
+                  <svg
+                    className='w-4 h-4 mr-2'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z'
+                    />
+                  </svg>
+                  Active Filters
+                </h3>
+                <div className='flex flex-wrap gap-2'>
+                  {search && (
+                    <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-200 text-blue-800'>
+                      Search: &quot;{search}&quot;
+                      <Link href='/products' className='ml-2 text-blue-600 hover:text-blue-800'>
+                        ×
+                      </Link>
+                    </span>
+                  )}
+                  {category && (
+                    <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-200 text-green-800'>
+                      Category: {category}
+                    </span>
+                  )}
+                  {priceRange && (
+                    <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-200 text-purple-800'>
+                      Price: {priceRange.split('-').map(Number).join(' - £')}
+                    </span>
+                  )}
+                  {brands.map((brand) => (
+                    <span
+                      key={brand}
+                      className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-200 text-orange-800'
+                    >
+                      Brand: {brand}
+                    </span>
+                  ))}
+                  {sortBy !== 'featured' && (
+                    <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-200 text-indigo-800'>
+                      Sort: {sortBy.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Results Summary */}
+            <div className='mb-6 flex justify-between items-center'>
+              <div className='text-gray-700'>
+                <span className='font-medium'>{products.length}</span> products found
+                {search && <span className='text-gray-500 ml-2'>for &quot;{search}&quot;</span>}
+              </div>
+
+              {/* Sort By - Right Side */}
+              <SortByDropdown currentSort={sortBy} />
+            </div>
+
+            {/* Products Grid */}
             {error ? (
               <div className='text-center py-16'>
                 <div className='w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4'>
@@ -186,64 +287,88 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 </div>
                 <h3 className='text-lg font-semibold text-gray-900 mb-2'>Error Loading Products</h3>
                 <p className='text-gray-600 mb-4'>{error}</p>
-                <p className='text-sm text-gray-500'>
-                  Please check your Shopify configuration and try again.
+              </div>
+            ) : products.length === 0 ? (
+              <div className='text-center py-16'>
+                <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
+                  <svg
+                    className='w-8 h-8 text-gray-400'
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                    />
+                  </svg>
+                </div>
+                <h3 className='text-lg font-semibold text-gray-900 mb-2'>
+                  {search ? <>No products found for &quot;{search}&quot;</> : 'No products found'}
+                </h3>
+                <p className='text-gray-600 mb-6'>
+                  {search
+                    ? 'Try different keywords or adjust your filters.'
+                    : 'Try adjusting your filters or search terms.'}
                 </p>
+                <div className='space-y-3'>
+                  <Link
+                    href='/products'
+                    className='inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors mr-4'
+                  >
+                    Clear all filters
+                  </Link>
+                  {search && (
+                    <Link
+                      href={`/products?${new URLSearchParams({
+                        ...(category && { category }),
+                        ...(priceRange && { price: priceRange }),
+                        ...(brands.length > 0 && { brands: brands.join(',') }),
+                        ...(sortBy !== 'featured' && { sort: sortBy }),
+                      }).toString()}`}
+                      className='inline-flex items-center px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors'
+                    >
+                      Remove search term
+                    </Link>
+                  )}
+                </div>
+                {search && (
+                  <div className='mt-8 p-4 bg-blue-50 rounded-lg'>
+                    <h4 className='font-medium text-blue-900 mb-2'>Search suggestions:</h4>
+                    <ul className='text-sm text-blue-700 space-y-1'>
+                      <li>
+                        • Try broader terms like &quot;laminate&quot;, &quot;vinyl&quot;, or
+                        &quot;wood&quot;
+                      </li>
+                      <li>• Check spelling and try alternative words</li>
+                      <li>• Browse categories using the filters on the left</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             ) : (
               <>
-                {products.length === 0 ? (
-                  <div className='text-center py-16'>
-                    <div className='w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4'>
-                      <svg
-                        className='w-8 h-8 text-gray-400'
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4'
-                        />
-                      </svg>
-                    </div>
-                    <h3 className='text-lg font-semibold text-gray-900 mb-2'>No products found</h3>
-                    <p className='text-gray-600 mb-6'>
-                      Try adjusting your filters or search terms to find what you&apos;re looking for.
-                    </p>
-                    <Link
-                      href='/products'
-                      className='inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors'
-                    >
-                      Clear all filters
-                      <svg
-                        className='ml-2 w-4 h-4'
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
-                        />
-                      </svg>
-                    </Link>
-                  </div>
-                ) : (
-                  <>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
-                      {products.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                      ))}
-                    </div>
+                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6'>
+                  {' '}
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
 
-                    {/* Pagination */}
-                    {products.length > 0 && (pageInfo.hasNextPage || pageInfo.hasPreviousPage) && (
-                      <div className='flex justify-center items-center space-x-4'>
+                {/* Pagination - Enhanced design below the cards */}
+                {(pageInfo.hasNextPage || pageInfo.hasPreviousPage) && (
+                  <div className='mt-12 py-8 border-t border-gray-200'>
+                    <div className='flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0'>
+                      {/* Page Info */}
+                      <div className='text-sm text-gray-600'>
+                        Showing page <span className='font-medium'>{page}</span>
+                        {pageInfo.hasNextPage && ' of multiple pages'}
+                      </div>
+
+                      {/* Navigation Buttons */}
+                      <div className='flex items-center space-x-4'>
                         {pageInfo.hasPreviousPage && (
                           <Link
                             href={`/products?page=${page - 1}${search ? `&search=${search}` : ''}${
@@ -251,10 +376,10 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                             }${priceRange ? `&price=${priceRange}` : ''}${
                               brands.length > 0 ? `&brands=${brands.join(',')}` : ''
                             }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}`}
-                            className='inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50'
+                            className='inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm'
                           >
                             <svg
-                              className='w-4 h-4 mr-2'
+                              className='w-5 h-5 mr-2'
                               fill='none'
                               stroke='currentColor'
                               viewBox='0 0 24 24'
@@ -270,7 +395,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                           </Link>
                         )}
 
-                        <span className='text-gray-600'>Page {page}</span>
+                        <div className='flex items-center space-x-2'>
+                          <span className='px-4 py-2 bg-blue-600 text-white rounded-lg font-medium'>
+                            {page}
+                          </span>
+                        </div>
 
                         {pageInfo.hasNextPage && (
                           <Link
@@ -279,11 +408,11 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                             }${priceRange ? `&price=${priceRange}` : ''}${
                               brands.length > 0 ? `&brands=${brands.join(',')}` : ''
                             }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}`}
-                            className='inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50'
+                            className='inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm'
                           >
                             Next
                             <svg
-                              className='w-4 h-4 ml-2'
+                              className='w-5 h-5 ml-2'
                               fill='none'
                               stroke='currentColor'
                               viewBox='0 0 24 24'
@@ -298,8 +427,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                           </Link>
                         )}
                       </div>
-                    )}
-                  </>
+                    </div>
+                  </div>
                 )}
               </>
             )}

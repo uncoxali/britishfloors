@@ -151,7 +151,7 @@ const AccountPage: React.FC = () => {
       updateProfile(formData);
       setIsEditing(false);
       showSuccess('Profile updated successfully!');
-    } catch (error) {
+    } catch {
       showError('Failed to update profile. Please try again.');
     }
   };

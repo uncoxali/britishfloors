@@ -102,7 +102,6 @@ export async function POST(request: NextRequest) {
         );
 
         if (!createCustomerResponse.ok) {
-            const errorData = await createCustomerResponse.json();
             return NextResponse.json(
                 { error: 'Failed to create customer in Shopify' },
                 { status: 500 }
@@ -131,7 +130,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(response);
 
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
@@ -198,7 +197,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ user: userData });
 
-    } catch (error) {
+    } catch {
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

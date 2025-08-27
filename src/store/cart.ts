@@ -17,6 +17,7 @@ interface CartStore {
     removeDiscount: () => void;
     calculateTotals: () => void;
     validateCart: () => { isValid: boolean; errors: string[] };
+    isProductInCart: (productId: string) => boolean;
 }
 
 const calculateMoney = (amount1: string, amount2: string): string => {
@@ -198,6 +199,12 @@ export const useCartStore = create<CartStore>()(
                     isValid: errors.length === 0,
                     errors
                 };
+            },
+
+            // Check if a product is already in the cart
+            isProductInCart: (productId: string) => {
+                const { items } = get();
+                return items.some(item => item.productId === productId);
             },
         }),
         {
