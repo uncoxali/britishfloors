@@ -256,4 +256,113 @@ export const SEARCH_PRODUCTS = gql`
       }
     }
   }
+`;
+
+// Blog queries
+export const GET_BLOGS = gql`
+  query GetBlogs($first: Int!, $after: String) {
+    blogs(first: $first, after: $after) {
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      edges {
+        node {
+          id
+          title
+          handle
+          description
+          image {
+            id
+            url
+            altText
+            width
+            height
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_ARTICLES = gql`
+  query GetArticles($first: Int!, $after: String) {
+    articles(first: $first, after: $after) {
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      edges {
+        node {
+          id
+          title
+          handle
+          excerpt
+          publishedAt
+          image {
+            id
+            url
+            altText
+            width
+            height
+          }
+          author {
+            name
+          }
+          tags
+        }
+      }
+    }
+  }
+`;
+
+export const GET_BLOG_BY_HANDLE = gql`
+  query GetBlogByHandle($handle: String!, $first: Int!, $after: String) {
+    blog(handle: $handle) {
+      id
+      title
+      handle
+      description
+      image {
+        id
+        url
+        altText
+        width
+        height
+      }
+      articles(first: $first, after: $after) {
+        pageInfo {
+          hasNextPage
+          hasPreviousPage
+          startCursor
+          endCursor
+        }
+        edges {
+          node {
+            id
+            title
+            handle
+            excerpt
+            contentHtml
+            publishedAt
+            image {
+              id
+              url
+              altText
+              width
+              height
+            }
+            author {
+              name
+            }
+            tags
+          }
+        }
+      }
+    }
+  }
 `; 

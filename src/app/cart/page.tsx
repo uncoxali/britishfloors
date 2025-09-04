@@ -30,12 +30,8 @@ const CartContent: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [orderId, setOrderId] = useState('');
 
-  // Debug user data
   useEffect(() => {
-    console.log('Cart page - Auth state:', { user, isAuthenticated });
-    if (user) {
-      console.log('User data in cart:', user);
-    }
+    // No-op; previously used for debugging auth state
   }, [user, isAuthenticated]);
 
   // Check for success message from checkout
@@ -71,8 +67,6 @@ const CartContent: React.FC = () => {
       router.push('/auth/login?redirect=/cart');
       return;
     }
-
-    console.log('User data for checkout:', user);
 
     // Validate cart before proceeding
     const cartValidation = validateCart();

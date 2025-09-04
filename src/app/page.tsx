@@ -3,11 +3,13 @@ import Image from 'next/image';
 import Layout from '@/components/layout/Layout';
 
 import { shopifyApi } from '@/lib/shopify/api';
-import { ShopifyProduct } from '@/lib/types/shopify';
+import { ShopifyProduct, ShopifyArticle } from '@/lib/types/shopify';
 import ProductCard from '@/components/product/ProductCard';
+import BlogsSection from '@/components/blog/BlogsSection';
 
 export default async function HomePage() {
   let products: ShopifyProduct[] = [];
+  let articles: ShopifyArticle[] = [];
 
   try {
     const response = await shopifyApi.getProducts(8);
@@ -16,6 +18,16 @@ export default async function HomePage() {
     console.log('Sample product:', products[0]);
   } catch (err) {
     console.error('Error loading products:', err);
+  }
+
+  try {
+    const articlesResponse = await shopifyApi.getArticles(5);
+    articles = articlesResponse.articles.edges.map((edge) => edge.node);
+    console.log('Loaded articles:', articles.length);
+    console.log('Sample article:', articles[0]);
+  } catch (err) {
+    console.error('Error loading articles:', err);
+    // Keep articles as empty array, fallback will be used
   }
 
   return (
@@ -270,39 +282,7 @@ export default async function HomePage() {
       </section>
 
       {/* Blogs Section */}
-      <section className='py-5 '>
-        <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
-          <div className='text-center mb-8'>
-            <h2 className='text-3xl lg:text-4xl font-bold text-blue-900'>Blogs</h2>
-          </div>
-
-          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4'>
-            {[
-              'What is Engineered Wood Flooring?',
-              'What is Vinyl Flooring?',
-              'How to Lay Engineered Wood Flooring',
-              'How to Lay Parquet Flooring',
-              'How to Lay Luxury Vinyl Tiles',
-            ].map((title) => (
-              <div key={title} className='group cursor-pointer'>
-                <div className='relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow duration-300'>
-                  <Image
-                    src='/images/sample-product.png'
-                    alt={title}
-                    width={300}
-                    height={200}
-                    className='w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300'
-                  />
-                  <div className='absolute inset-0 bg-black/40'></div>
-                  <div className='absolute inset-x-0 bottom-0 p-3 text-white'>
-                    <h3 className='text-sm font-semibold leading-tight'>{title}</h3>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <BlogsSection articles={articles} showFullContent={true} />
 
       {/* Special Offers Section */}
     </Layout>

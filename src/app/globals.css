@@ -90,3 +90,65 @@ body {
     linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
   background-size: 20px 20px;
 }
+
+/* Blog Content Styling */
+.blog-content {
+  @apply text-gray-700 leading-relaxed;
+}
+
+.blog-content h1 {
+  @apply text-3xl font-bold text-blue-900 mb-4 mt-8;
+}
+
+.blog-content h2 {
+  @apply text-2xl font-bold text-blue-900 mb-3 mt-6;
+}
+
+.blog-content h3 {
+  @apply text-xl font-bold text-blue-900 mb-2 mt-5;
+}
+
+.blog-content h4 {
+  @apply text-lg font-bold text-blue-900 mb-2 mt-4;
+}
+
+.blog-content p {
+  @apply mb-4 text-base leading-relaxed;
+}
+
+.blog-content ul {
+  @apply mb-4 pl-6;
+}
+
+.blog-content ol {
+  @apply mb-4 pl-6;
+}
+
+.blog-content li {
+  @apply mb-2;
+}
+
+.blog-content a {
+  @apply text-blue-600 hover:text-blue-800 underline;
+}
+
+.blog-content blockquote {
+  @apply border-l-4 border-blue-200 pl-4 italic text-gray-600 my-4;
+}
+
+.blog-content img {
+  @apply max-w-full h-auto rounded-lg my-4;
+}
+
+.blog-content table {
+  @apply w-full border-collapse border border-gray-300 my-4;
+}
+
+.blog-content th,
+.blog-content td {
+  @apply border border-gray-300 px-3 py-2 text-left;
+}
+
+.blog-content th {
+  @apply bg-gray-100 font-semibold;
+}

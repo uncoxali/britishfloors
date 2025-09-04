@@ -88,7 +88,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   return (
-    <div className='bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200 relative w-[250px]'>
+    <div className='bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200 relative w-full h-full flex flex-col'>
       {/* Product Image */}
       <Link href={`/products/${product.handle}`} className='block'>
         <div className='aspect-[4/3] w-full overflow-hidden bg-gray-50'>
@@ -109,37 +109,40 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </Link>
 
       {/* Product Details */}
-      <div className='p-4'>
-        {/* Product Title - Blue, two lines */}
-        <Link href={`/products/${product.handle}`}>
-          <h3 className='text-xs font-semibold text-blue-900 mb-1.5 leading-tight text-center truncate'>
-            {product.title}
-          </h3>
-        </Link>
+      <div className='p-3 xl:p-4 2xl:p-5 flex-1 flex flex-col'>
+        {/* Top Content */}
+        <div className='flex-1'>
+          {/* Product Title - Blue, two lines */}
+          <Link href={`/products/${product.handle}`}>
+            <h3 className='text-sm font-semibold text-blue-900 mb-1.5 leading-tight text-center line-clamp-2'>
+              {product.title}
+            </h3>
+          </Link>
 
-        {/* Divider Line */}
-        <div className='w-full h-px bg-gray-300 mb-1.5'></div>
+          {/* Divider Line */}
+          <div className='w-full h-px bg-gray-300 mb-1.5'></div>
 
-        {/* Specifications - Single line format */}
-        <div className='text-xs text-gray-600 mb-2 text-center'>
-          W:{dimensions.width || '100mm'} &nbsp;&nbsp;&nbsp; T:{dimensions.thickness || '12mm'}{' '}
-          &nbsp;&nbsp;&nbsp; L:{dimensions.length || '600mm'}
+          {/* Specifications - Single line format */}
+          <div className='text-sm text-gray-600 mb-2 text-center'>
+            W:{dimensions.width || '100mm'} &nbsp;&nbsp;&nbsp; T:{dimensions.thickness || '12mm'}{' '}
+            &nbsp;&nbsp;&nbsp; L:{dimensions.length || '600mm'}
+          </div>
         </div>
 
-        {/* Pricing and Button Row */}
-        <div className='flex items-end justify-between'>
+        {/* Bottom Content - Pricing and Button Row */}
+        <div className='flex items-end justify-between mt-auto'>
           <div>
             {hasDiscount && originalPrice && (
-              <div className='flex items-center gap-1.5 mb-0.5'>
-                <span className='text-xs text-gray-400 line-through'>
+              <div className='flex items-center gap-2 mb-1'>
+                <span className='text-sm text-gray-400 line-through'>
                   £{originalPrice.toFixed(2)} m²
                 </span>
-                <span className='bg-red-500 text-white text-xs px-1 py-0.5 rounded-full'>
+                <span className='bg-red-500 text-white text-sm px-2 py-1 rounded-full'>
                   -{discount}%
                 </span>
               </div>
             )}
-            <div className='text-base font-bold text-gray-400'>£{price.toFixed(2)} m2</div>
+            <div className='text-sm font-bold text-gray-400'>£{price.toFixed(2)} m2</div>
           </div>
 
           {/* Order Sample Button */}
@@ -147,7 +150,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <button
               onClick={handleOrderSample}
               disabled={isLoading}
-              className={`py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
+              className={`py-1.5 px-2.5 xl:py-2.5 xl:px-4 rounded-lg text-xs font-medium transition-colors ${
                 isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
                   : isInCart
@@ -183,10 +186,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
                       clipRule='evenodd'
                     />
                   </svg>
-                  View Basket
+                  <span className='hidden xl:inline'>View Basket</span>
+                  <span className='xl:hidden'>Basket</span>
                 </span>
               ) : (
-                'Order Sample'
+                <span>
+                  <span className='hidden xl:inline'>Order Sample</span>
+                  <span className='xl:hidden'>Sample</span>
+                </span>
               )}
             </button>
           )}

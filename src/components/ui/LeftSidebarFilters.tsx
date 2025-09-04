@@ -193,31 +193,31 @@ const LeftSidebarFilters: React.FC<LeftSidebarFiltersProps> = ({
 
         {/* Active Filters */}
         {hasActiveFilters && (
-          <div className='mt-4 p-3 bg-blue-50 rounded-lg'>
+          <div className='mt-4 p-3 bg-amber-50 rounded-lg'>
             <div className='flex items-center justify-between mb-2'>
-              <span className='text-sm font-medium text-blue-900'>Active Filters</span>
+              <span className='text-sm font-medium text-amber-800'>Active Filters</span>
               <button
                 onClick={clearAllFilters}
-                className='text-xs text-blue-600 hover:text-blue-800 font-medium'
+                className='text-xs text-red-600 hover:text-red-800 font-medium'
               >
                 Clear All
               </button>
             </div>
             <div className='flex flex-wrap gap-1'>
               {selectedCategory && (
-                <span className='inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-200 text-blue-800'>
+                <span className='inline-flex items-center px-2 py-1 rounded-full text-xs bg-amber-600 text-white'>
                   {selectedCategory}
                 </span>
               )}
               {selectedPriceRange && (
-                <span className='inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-200 text-green-800'>
+                <span className='inline-flex items-center px-2 py-1 rounded-full text-xs bg-amber-600 text-white'>
                   {priceRanges.find((r) => `${r.min}-${r.max}` === selectedPriceRange)?.label}
                 </span>
               )}
               {selectedBrands.map((brand) => (
                 <span
                   key={brand}
-                  className='inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-200 text-orange-800'
+                  className='inline-flex items-center px-2 py-1 rounded-full text-xs bg-amber-600 text-white'
                 >
                   {brand}
                 </span>
@@ -225,7 +225,7 @@ const LeftSidebarFilters: React.FC<LeftSidebarFiltersProps> = ({
               {selectedColors.map((color) => (
                 <span
                   key={color}
-                  className='inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-200 text-purple-800'
+                  className='inline-flex items-center px-2 py-1 rounded-full text-xs bg-amber-600 text-white'
                 >
                   {colors.find((c) => c.value === color)?.name}
                 </span>

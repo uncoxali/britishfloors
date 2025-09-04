@@ -9,14 +9,7 @@ interface SearchResultsFiltersProps {
   totalResults?: number;
   currentPage?: number;
   hasNextPage?: boolean;
-  onFiltersChange?: (filters: {
-    search?: string;
-    category?: string;
-    priceRange?: string;
-    brands?: string[];
-    sortBy?: string;
-    limit?: number;
-  }) => void;
+  onFiltersChange?: (filters: Record<string, unknown>) => void;
 }
 
 const SearchResultsFilters: React.FC<SearchResultsFiltersProps> = ({
@@ -213,7 +206,7 @@ const SearchResultsFilters: React.FC<SearchResultsFiltersProps> = ({
                     />
                   </svg>
                   <span className='text-sm font-medium text-blue-900'>
-                    Searching for: &ldquo;{searchQuery}&rdquo;
+                    Searching for: &quot;{searchQuery}&quot;
                   </span>
                 </div>
                 <button

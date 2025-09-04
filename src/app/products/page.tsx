@@ -7,6 +7,7 @@ import { ShopifyProduct } from '@/lib/types/shopify';
 import LeftSidebarFilters from '@/components/ui/LeftSidebarFilters';
 import MobileFiltersWrapper from '@/components/ui/MobileFiltersWrapper';
 import SortByDropdown from '@/components/ui/SortByDropdown';
+import GridToggle from '@/components/ui/GridToggle';
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -16,6 +17,7 @@ interface ProductsPageProps {
     price?: string;
     brands?: string;
     sort?: string;
+    grid?: string;
   }>;
 }
 
@@ -27,20 +29,23 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const priceRange = resolvedSearchParams.price || '';
   const brands = resolvedSearchParams.brands?.split(',') || [];
   const sortBy = resolvedSearchParams.sort || 'featured';
-  const itemsPerPage = 20;
-  const after = page > 1 ? btoa(`arrayconnection:${(page - 1) * itemsPerPage - 1}`) : undefined;
+  const gridParam = parseInt(resolvedSearchParams.grid || '0');
+  const currentGrid = gridParam && gridParam >= 2 && gridParam <= 4 ? gridParam : 3;
+  const itemsPerPage = 8;
 
   let products: ShopifyProduct[] = [];
   let pageInfo = { hasNextPage: false, hasPreviousPage: false };
+  let totalProducts = 0;
   let error: string | null = null;
 
   try {
     // Get all products first
     const response = search
-      ? await shopifyApi.searchProducts(search, 100, after)
-      : await shopifyApi.getProducts(100, after);
+      ? await shopifyApi.searchProducts(search, 100)
+      : await shopifyApi.getProducts(100);
 
     let filteredProducts = response.products.edges.map((edge) => edge.node);
+    totalProducts = filteredProducts.length;
 
     // Apply category filter
     if (category) {
@@ -103,6 +108,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     products = filteredProducts.slice(startIndex, endIndex);
+    totalProducts = filteredProducts.length;
 
     // Update page info
     pageInfo = {
@@ -201,69 +207,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               />
             </div>
 
-            {/* Active Filters Display */}
-            {(search || category || priceRange || brands.length > 0 || sortBy !== 'featured') && (
-              <div className='mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4'>
-                <h3 className='text-sm font-semibold text-blue-900 mb-3 flex items-center'>
-                  <svg
-                    className='w-4 h-4 mr-2'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z'
-                    />
-                  </svg>
-                  Active Filters
-                </h3>
-                <div className='flex flex-wrap gap-2'>
-                  {search && (
-                    <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-200 text-blue-800'>
-                      Search: &quot;{search}&quot;
-                      <Link href='/products' className='ml-2 text-blue-600 hover:text-blue-800'>
-                        ×
-                      </Link>
-                    </span>
-                  )}
-                  {category && (
-                    <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-200 text-green-800'>
-                      Category: {category}
-                    </span>
-                  )}
-                  {priceRange && (
-                    <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-200 text-purple-800'>
-                      Price: {priceRange.split('-').map(Number).join(' - £')}
-                    </span>
-                  )}
-                  {brands.map((brand) => (
-                    <span
-                      key={brand}
-                      className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-200 text-orange-800'
-                    >
-                      Brand: {brand}
-                    </span>
-                  ))}
-                  {sortBy !== 'featured' && (
-                    <span className='inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-200 text-indigo-800'>
-                      Sort: {sortBy.replace('-', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* Results Summary */}
             <div className='mb-6 flex justify-between items-center'>
-              <div className='text-gray-700'>
-                <span className='font-medium'>{products.length}</span> products found
-                {search && <span className='text-gray-500 ml-2'>for &quot;{search}&quot;</span>}
+              <div className='flex items-center gap-4'>
+                <GridToggle currentGrid={currentGrid} />
               </div>
 
-              {/* Sort By - Right Side */}
+              {/* Sort - Right Side */}
               <SortByDropdown currentSort={sortBy} />
             </div>
 
@@ -350,36 +300,40 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               </div>
             ) : (
               <>
-                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6'>
-                  {' '}
+                <div
+                  className={`${'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'} ${
+                    currentGrid === 2
+                      ? 'xl:grid-cols-2 2xl:grid-cols-2 gap-4 xl:gap-6'
+                      : currentGrid === 3
+                      ? 'xl:grid-cols-3 2xl:grid-cols-3 gap-4 xl:gap-6'
+                      : 'xl:grid-cols-3 2xl:grid-cols-4 gap-4 xl:gap-5'
+                  } items-start`}
+                >
                   {products.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
 
-                {/* Pagination - Enhanced design below the cards */}
+                {/* Pagination - MUI Style */}
                 {(pageInfo.hasNextPage || pageInfo.hasPreviousPage) && (
-                  <div className='mt-12 py-8 border-t border-gray-200'>
-                    <div className='flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0'>
-                      {/* Page Info */}
-                      <div className='text-sm text-gray-600'>
-                        Showing page <span className='font-medium'>{page}</span>
-                        {pageInfo.hasNextPage && ' of multiple pages'}
-                      </div>
-
-                      {/* Navigation Buttons */}
-                      <div className='flex items-center space-x-4'>
-                        {pageInfo.hasPreviousPage && (
+                  <div className='mt-8 pt-6 border-t border-gray-200'>
+                    <div className='flex justify-center'>
+                      <nav className='flex items-center space-x-1'>
+                        {/* Previous Button */}
+                        {pageInfo.hasPreviousPage ? (
                           <Link
                             href={`/products?page=${page - 1}${search ? `&search=${search}` : ''}${
                               category ? `&category=${category}` : ''
                             }${priceRange ? `&price=${priceRange}` : ''}${
                               brands.length > 0 ? `&brands=${brands.join(',')}` : ''
-                            }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}`}
-                            className='inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm'
+                            }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
+                              currentGrid !== 3 ? `&grid=${currentGrid}` : ''
+                            }`}
+                            className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors'
+                            aria-label='Previous page'
                           >
                             <svg
-                              className='w-5 h-5 mr-2'
+                              className='w-5 h-5'
                               fill='none'
                               stroke='currentColor'
                               viewBox='0 0 24 24'
@@ -391,28 +345,137 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                                 d='M15 19l-7-7 7-7'
                               />
                             </svg>
-                            Previous
                           </Link>
+                        ) : (
+                          <span className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 text-gray-300 cursor-not-allowed'>
+                            <svg
+                              className='w-5 h-5'
+                              fill='none'
+                              stroke='currentColor'
+                              viewBox='0 0 24 24'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M15 19l-7-7 7-7'
+                              />
+                            </svg>
+                          </span>
                         )}
 
-                        <div className='flex items-center space-x-2'>
-                          <span className='px-4 py-2 bg-blue-600 text-white rounded-lg font-medium'>
-                            {page}
-                          </span>
-                        </div>
+                        {/* Page Numbers */}
+                        {(() => {
+                          const totalPages = Math.ceil(totalProducts / itemsPerPage);
+                          const pages = [];
+                          const maxVisiblePages = 5;
 
-                        {pageInfo.hasNextPage && (
+                          let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+                          const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                          if (endPage - startPage + 1 < maxVisiblePages) {
+                            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                          }
+
+                          // First page + ellipsis
+                          if (startPage > 1) {
+                            pages.push(
+                              <Link
+                                key={1}
+                                href={`/products?page=1${search ? `&search=${search}` : ''}${
+                                  category ? `&category=${category}` : ''
+                                }${priceRange ? `&price=${priceRange}` : ''}${
+                                  brands.length > 0 ? `&brands=${brands.join(',')}` : ''
+                                }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
+                                  currentGrid !== 3 ? `&grid=${currentGrid}` : ''
+                                }`}
+                                className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors'
+                              >
+                                1
+                              </Link>,
+                            );
+                            if (startPage > 2) {
+                              pages.push(
+                                <span
+                                  key='ellipsis1'
+                                  className='inline-flex items-center justify-center w-10 h-10 text-gray-500'
+                                >
+                                  ...
+                                </span>,
+                              );
+                            }
+                          }
+
+                          // Page numbers
+                          for (let i = startPage; i <= endPage; i++) {
+                            pages.push(
+                              <Link
+                                key={i}
+                                href={`/products?page=${i}${search ? `&search=${search}` : ''}${
+                                  category ? `&category=${category}` : ''
+                                }${priceRange ? `&price=${priceRange}` : ''}${
+                                  brands.length > 0 ? `&brands=${brands.join(',')}` : ''
+                                }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
+                                  currentGrid !== 3 ? `&grid=${currentGrid}` : ''
+                                }`}
+                                className={`inline-flex items-center justify-center w-10 h-10 rounded-full border transition-colors ${
+                                  i === page
+                                    ? 'bg-blue-600 text-white border-blue-600'
+                                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                {i}
+                              </Link>,
+                            );
+                          }
+
+                          // Ellipsis + last page
+                          if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                              pages.push(
+                                <span
+                                  key='ellipsis2'
+                                  className='inline-flex items-center justify-center w-10 h-10 text-gray-500'
+                                >
+                                  ...
+                                </span>,
+                              );
+                            }
+                            pages.push(
+                              <Link
+                                key={totalPages}
+                                href={`/products?page=${totalPages}${
+                                  search ? `&search=${search}` : ''
+                                }${category ? `&category=${category}` : ''}${
+                                  priceRange ? `&price=${priceRange}` : ''
+                                }${brands.length > 0 ? `&brands=${brands.join(',')}` : ''}${
+                                  sortBy !== 'featured' ? `&sort=${sortBy}` : ''
+                                }${currentGrid !== 3 ? `&grid=${currentGrid}` : ''}`}
+                                className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors'
+                              >
+                                {totalPages}
+                              </Link>,
+                            );
+                          }
+
+                          return pages;
+                        })()}
+
+                        {/* Next Button */}
+                        {pageInfo.hasNextPage ? (
                           <Link
                             href={`/products?page=${page + 1}${search ? `&search=${search}` : ''}${
                               category ? `&category=${category}` : ''
                             }${priceRange ? `&price=${priceRange}` : ''}${
                               brands.length > 0 ? `&brands=${brands.join(',')}` : ''
-                            }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}`}
-                            className='inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium shadow-sm'
+                            }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
+                              currentGrid !== 3 ? `&grid=${currentGrid}` : ''
+                            }`}
+                            className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors'
+                            aria-label='Next page'
                           >
-                            Next
                             <svg
-                              className='w-5 h-5 ml-2'
+                              className='w-5 h-5'
                               fill='none'
                               stroke='currentColor'
                               viewBox='0 0 24 24'
@@ -425,8 +488,24 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                               />
                             </svg>
                           </Link>
+                        ) : (
+                          <span className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-200 text-gray-300 cursor-not-allowed'>
+                            <svg
+                              className='w-5 h-5'
+                              fill='none'
+                              stroke='currentColor'
+                              viewBox='0 0 24 24'
+                            >
+                              <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth={2}
+                                d='M9 5l7 7-7 7'
+                              />
+                            </svg>
+                          </span>
                         )}
-                      </div>
+                      </nav>
                     </div>
                   </div>
                 )}

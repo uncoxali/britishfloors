@@ -94,6 +94,54 @@ export interface ShopifyCollectionsResponse {
     };
 }
 
+// Blog Types
+export interface ShopifyBlog {
+    id: string;
+    title: string;
+    handle: string;
+    description?: string;
+    image?: ShopifyImage;
+    articles?: {
+        pageInfo: ShopifyPageInfo;
+        edges: Array<{
+            node: ShopifyArticle;
+        }>;
+    };
+}
+
+export interface ShopifyArticle {
+    id: string;
+    title: string;
+    handle: string;
+    excerpt?: string;
+    content?: string;
+    contentHtml?: string;
+    publishedAt: string;
+    image?: ShopifyImage;
+    author?: {
+        name: string;
+    };
+    tags?: string[];
+}
+
+export interface ShopifyBlogsResponse {
+    blogs: {
+        pageInfo: ShopifyPageInfo;
+        edges: Array<{
+            node: ShopifyBlog;
+        }>;
+    };
+}
+
+export interface ShopifyArticlesResponse {
+    articles: {
+        pageInfo: ShopifyPageInfo;
+        edges: Array<{
+            node: ShopifyArticle;
+        }>;
+    };
+}
+
 // Cart Types
 export interface CartItem {
     id: string;
