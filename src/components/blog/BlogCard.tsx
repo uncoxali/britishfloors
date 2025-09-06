@@ -62,10 +62,13 @@ const BlogCard: React.FC<BlogCardProps> = ({
             </p>
           )}
 
-          {showFullContent && article.content && (
+          {showFullContent && (article.content || article.excerpt) && (
             <div className='mt-3'>
               <p className='text-gray-600 text-sm line-clamp-3'>
-                {article.content.replace(/<[^>]*>/g, '').substring(0, 150)}...
+                {article.content 
+                  ? article.content.replace(/<[^>]*>/g, '').substring(0, 150) + '...' 
+                  : article.excerpt
+                }
               </p>
               <div className='mt-3 text-blue-600 text-sm font-medium group-hover:text-blue-800 transition-colors'>
                 Read More →

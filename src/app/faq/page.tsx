@@ -100,7 +100,7 @@ const FAQPage: React.FC = () => {
         <div className='absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-amber-600/20 rounded-full blur-3xl'></div>
         <div className='absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-full blur-3xl'></div>
 
-        <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20'>
+        <div className='relative w-full px-4 sm:px-6 lg:px-8 py-20'>
           <div className='text-center'>
             {/* Badge */}
             <div className='inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm font-medium mb-6'>

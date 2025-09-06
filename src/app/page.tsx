@@ -21,13 +21,13 @@ export default async function HomePage() {
   }
 
   try {
-    const articlesResponse = await shopifyApi.getArticles(5);
+    const articlesResponse = await shopifyApi.getArticlesWithContent(5);
     articles = articlesResponse.articles.edges.map((edge) => edge.node);
-    console.log('Loaded articles:', articles.length);
+    console.log('Loaded articles with content:', articles.length);
     console.log('Sample article:', articles[0]);
   } catch (err) {
     console.error('Error loading articles:', err);
-    // Keep articles as empty array, fallback will be used
+    // Keep articles as empty array, fallback will be used in BlogsSection
   }
 
   return (
@@ -42,7 +42,7 @@ export default async function HomePage() {
 
       {/* Featured Categories Section */}
       <section className='py-5'>
-        <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='w-full px-4 sm:px-6 lg:px-8'>
           {/* Section Title */}
           <div className='text-center mb-12'>
             <h2 className='text-3xl lg:text-4xl font-bold text-blue-900 mb-4'>
@@ -125,7 +125,7 @@ export default async function HomePage() {
 
       {/* Popular Products Section */}
       <section className='py-5'>
-        <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='w-full px-4 sm:px-6 lg:px-8'>
           {/* Section Title */}
           <div className='text-center mb-12'>
             <h2 className='text-3xl lg:text-4xl font-bold text-blue-900 mb-4'>Popular Products</h2>
@@ -226,7 +226,7 @@ export default async function HomePage() {
 
       {/* About Us Section */}
       <section className='py-5'>
-        <div className='container mx-auto px-4 sm:px-6 lg:px-8'>
+        <div className='w-full px-4 sm:px-6 lg:px-8'>
           <div className='text-center mb-12'>
             <h2 className='text-3xl lg:text-4xl font-bold text-blue-900 mb-4'>About Us</h2>
           </div>

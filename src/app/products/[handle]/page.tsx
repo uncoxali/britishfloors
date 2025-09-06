@@ -6,6 +6,7 @@ import { shopifyApi } from '@/lib/shopify/api';
 import { formatPrice } from '@/lib/utils/format';
 import { ShopifyProduct } from '@/lib/types/shopify';
 import ProductDetailClient from './ProductDetailClient';
+import ProductDetailModern from './ProductDetailModern';
 
 interface ProductPageProps {
   params: Promise<{
@@ -33,112 +34,42 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <Layout>
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-16'>
-          {/* Product Image */}
-          <div className='relative'>
-            <div className='aspect-square w-full overflow-hidden rounded-lg bg-gray-100'>
-              {product.images.edges.length > 0 ? (
-                <Image
-                  src={product.images.edges[0].node.url}
-                  alt={product.images.edges[0].node.altText || product.title}
-                  width={600}
-                  height={600}
-                  className='h-full w-full object-cover object-center'
-                  priority
-                />
+        <ProductDetailModern product={product} />
+       
+
+        {/* Description + Room suitability */}
+        <div className='mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6'>
+          <div className='border border-[#E8E0D2] rounded-xl overflow-hidden'>
+            <div className='px-4 py-3 bg-[#C5974A] text-white font-semibold flex items-center justify-between'>
+              <span>Description</span>
+              <span>▾</span>
+            </div>
+            <div className='p-4 text-gray-700 text-sm'>
+              {product.descriptionHtml ? (
+                <div dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
               ) : (
-                <div className='flex h-full w-full items-center justify-center bg-gray-200'>
-                  <div className='text-center'>
-                    <div className='w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-4'>
-                      <svg
-                        className='w-8 h-8 text-gray-400'
-                        fill='none'
-                        stroke='currentColor'
-                        viewBox='0 0 24 24'
-                      >
-                        <path
-                          strokeLinecap='round'
-                          strokeLinejoin='round'
-                          strokeWidth={2}
-                          d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'
-                        />
-                      </svg>
-                    </div>
-                    <span className='text-gray-400 text-sm'>No image available</span>
-                  </div>
-                </div>
+                <p>{product.description || 'No description available.'}</p>
               )}
             </div>
-            {/* Additional Images */}
-            {product.images.edges.length > 1 && (
-              <div className='grid grid-cols-4 gap-4 mt-6'>
-                {product.images.edges.slice(1, 5).map((image, index) => (
-                  <div
-                    key={image.node.id}
-                    className='aspect-square overflow-hidden rounded-lg bg-gray-100'
-                  >
-                    <Image
-                      src={image.node.url}
-                      alt={image.node.altText || `${product.title} ${index + 2}`}
-                      width={150}
-                      height={150}
-                      className='h-full w-full object-cover object-center'
-                    />
+          </div>
+          <div className='border border-[#E8E0D2] rounded-xl overflow-hidden'>
+            <div className='px-4 py-3 bg-[#C5974A] text-white font-semibold flex items-center justify-between'>
+              <span>Room Suitability</span>
+              <span>▾</span>
+            </div>
+            <div className='p-4 text-sm text-gray-800 grid grid-cols-2 md:grid-cols-3 gap-4'>
+              {['Kitchen', 'Bathroom', 'Bedroom', 'Lounge', 'Stairs', 'Underfloor Heating!'].map(
+                (label) => (
+                  <div key={label} className='flex items-center gap-2'>
+                    <span className='inline-flex items-center justify-center w-8 h-8 rounded-md border border-[#E8E0D2]'>
+                      🏷️
+                    </span>
+                    <span>{label}</span>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Product Info */}
-          <div className='space-y-6'>
-            <div>
-              <h1 className='text-3xl font-bold text-gray-900 mb-2'>{product.title}</h1>
-              <p className='text-lg text-gray-600 mb-4'>{product.description}</p>
-              <div className='text-2xl font-bold text-gray-900'>
-                {formatPrice(product.priceRange.minVariantPrice)}
-                {product.priceRange.minVariantPrice.amount !==
-                  product.priceRange.maxVariantPrice.amount && (
-                  <span className='text-lg font-normal text-gray-500'>
-                    {' '}
-                    - {formatPrice(product.priceRange.maxVariantPrice)}
-                  </span>
-                )}
-              </div>
+                ),
+              )}
             </div>
-
-            {/* Product Variants & Calculator */}
-            <ProductDetailClient product={product} />
           </div>
-        </div>
-
-        {/* Product Details */}
-        <div className='mt-16'>
-          <h2 className='text-2xl font-bold text-gray-900 mb-8'>Product Details</h2>
-          {product.descriptionHtml ? (
-            <div
-              className='prose max-w-none text-gray-700'
-              dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
-            />
-          ) : (
-            <div className='text-gray-700'>
-              <p className='mb-4'>
-                This premium flooring product offers exceptional quality and durability. Perfect for
-                both residential and commercial applications, it combines aesthetic appeal with
-                practical functionality.
-              </p>
-              <p className='mb-4'>
-                Our flooring solutions are designed to withstand daily wear and tear while
-                maintaining their beautiful appearance for years to come. Each piece is carefully
-                crafted using the finest materials and cutting-edge manufacturing processes.
-              </p>
-              <p>
-                Installation is straightforward and can be completed by professional installers or
-                experienced DIY enthusiasts. The product comes with comprehensive installation
-                instructions and warranty coverage.
-              </p>
-            </div>
-          )}
         </div>
 
         {/* Features & Specs */}

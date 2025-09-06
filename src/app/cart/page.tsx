@@ -203,7 +203,7 @@ const CartContent: React.FC = () => {
   if (items.length === 0) {
     return (
       <Layout>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        <div className='w-full px-4 sm:px-6 lg:px-8 py-8'>
           <div className='text-center py-12'>
             <svg
               className='mx-auto h-24 w-24 text-gray-300'
@@ -236,7 +236,7 @@ const CartContent: React.FC = () => {
 
   return (
     <Layout>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+      <div className='w-full px-4 sm:px-6 lg:px-8 py-8'>
         <div className='mb-8'>
           <h1 className='text-3xl font-bold text-gray-900'>Shopping Cart</h1>
           <p className='text-gray-600 mt-2'>Review your items and proceed to checkout</p>

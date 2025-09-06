@@ -302,6 +302,8 @@ export const GET_ARTICLES = gql`
           title
           handle
           excerpt
+          content
+          contentHtml
           publishedAt
           image {
             id
@@ -347,6 +349,7 @@ export const GET_BLOG_BY_HANDLE = gql`
             title
             handle
             excerpt
+            content
             contentHtml
             publishedAt
             image {
@@ -362,6 +365,33 @@ export const GET_BLOG_BY_HANDLE = gql`
             tags
           }
         }
+      }
+    }
+  }
+`;
+
+export const GET_ARTICLE_BY_HANDLE = gql`
+  query GetArticleByHandle($blogHandle: String!, $articleHandle: String!) {
+    blog(handle: $blogHandle) {
+      articleByHandle(handle: $articleHandle) {
+        id
+        title
+        handle
+        excerpt
+        content
+        contentHtml
+        publishedAt
+        image {
+          id
+          url
+          altText
+          width
+          height
+        }
+        author {
+          name
+        }
+        tags
       }
     }
   }

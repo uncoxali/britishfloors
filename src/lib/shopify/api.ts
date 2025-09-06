@@ -126,21 +126,39 @@ export const shopifyApi = {
     },
 
     // Get article by handle with full content
-    getArticleByHandle: async (handle: string): Promise<{ article: ShopifyArticle }> => {
+    getArticleByHandle: async (handle: string): Promise<{ article: ShopifyArticle | null }> => {
         try {
-            // Get all articles and filter by handle since Shopify doesn't support direct article lookup by handle
-            const response = await shopifyApi.getArticles(100);
+            console.log(`Fetching article with handle: ${handle}`);
+            // Fetch all articles and find the one with matching handle
+            const response = await shopifyApi.getArticlesWithContent(100);
             const articles = response.articles.edges.map((edge) => edge.node);
+            console.log(`Found ${articles.length} articles total`);
+            
             const article = articles.find((article) => article.handle === handle);
-
-            if (!article) {
-                throw new Error('Article not found');
+            
+            if (article) {
+                console.log(`Found article: ${article.title}`);
+                return { article };
+            } else {
+                console.log(`No article found with handle: ${handle}`);
+                console.log('Available article handles:', articles.map(a => a.handle));
+                return { article: null };
             }
-
-            return { article };
         } catch (error) {
-            console.error('Error fetching article:', error);
-            throw new Error('Failed to fetch article');
+            console.error('Error fetching article by handle:', error);
+            return { article: null };
+        }
+    },
+
+    // Get articles with full content for blogs page
+    getArticlesWithContent: async (first: number = 10, after?: string): Promise<ShopifyArticlesResponse> => {
+        try {
+            const variables = { first, after };
+            const data = await shopifyClient.request(GET_ARTICLES, variables);
+            return data as ShopifyArticlesResponse;
+        } catch (error) {
+            console.error('Error fetching articles with content:', error);
+            throw new Error('Failed to fetch articles with content');
         }
     },
 }; 

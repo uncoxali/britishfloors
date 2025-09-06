@@ -13,7 +13,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({
   children,
   useContainer = true,
-  containerClassName = 'container mx-auto px-4 sm:px-6 lg:px-8',
+  containerClassName = 'w-full px-4 sm:px-6 lg:px-8',
 }) => {
   return (
     <div className='min-h-screen flex flex-col'>
