@@ -1,156 +1,337 @@
 'use client';
 
-import React, { useState } from 'react';
-import FlooringCalculator from '@/components/ui/FlooringCalculator';
-import { useCartStore } from '@/store/cart';
-import { useCartDrawerStore } from '@/store/cartDrawer';
-import { ShopifyProduct, ShopifyProductVariant } from '@/lib/types/shopify';
+import React, { useState, useEffect } from 'react';
+import { ShopifyProduct } from '@/lib/types/shopify';
+import { useCalculator } from '@/hooks/useCalculator';
+import { useProductCart } from '@/hooks/useProductCart';
+import { useAccordion } from '@/hooks/useAccordion';
+import { getProductColors, getPriceForColor } from '@/utils/productUtils';
 
-interface ProductDetailClientProps {
+import ProductGallery from '@/components/product/ProductGallery';
+import ColorSelector from '@/components/product/ColorSelector';
+import ProductRating from '@/components/product/ProductRating';
+import ProductSpecifications from '@/components/product/ProductSpecifications';
+import CalculatorTab from '@/components/product/CalculatorTab';
+import OrderTab from '@/components/product/OrderTab';
+import ActionButtons from '@/components/product/ActionButtons';
+import VisualSimilarProducts from '@/components/product/VisualSimilarProducts';
+import ProductSpecificationsDetails from '@/components/product/ProductSpecificationsDetails';
+import AccordionItem from '@/components/ui/AccordionItem';
+
+interface ProductDetailModernProps {
   product: ShopifyProduct;
 }
 
-const ProductDetailClient: React.FC<ProductDetailClientProps> = ({ product }) => {
-  const [selectedVariant, setSelectedVariant] = useState<ShopifyProductVariant | null>(
-    product.variants.edges[0]?.node || null,
-  );
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
-  const [quantity, setQuantity] = useState(1);
-  const [isAdding, setIsAdding] = useState(false);
+const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) => {
+  const images = product.images.edges.map((e) => e.node);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<'calculate' | 'order'>('calculate');
+  const [selectedColor, setSelectedColor] = useState<string>('');
+  const colors = getProductColors(product);
 
-  const addItem = useCartStore((state) => state.addItem);
-  const { open: openCart } = useCartDrawerStore();
-
-  // Initialize selected options from the first variant
-  React.useEffect(() => {
-    if (product.variants.edges[0]?.node?.selectedOptions) {
-      const initialOptions: Record<string, string> = {};
-      product.variants.edges[0].node.selectedOptions.forEach((option) => {
-        initialOptions[option.name] = option.value;
-      });
-      setSelectedOptions(initialOptions);
+  // Set the first color as selected by default if colors exist
+  useEffect(() => {
+    if (colors.length > 0 && !selectedColor) {
+      setSelectedColor(colors[0]);
     }
-  }, [product]);
+  }, [colors, selectedColor]);
 
-  // Find variant based on selected options
-  const findVariantByOptions = (options: Record<string, string>): ShopifyProductVariant | null => {
-    return (
-      product.variants.edges.find((edge) => {
-        const variant = edge.node;
-        if (!variant.selectedOptions) return false;
+  // Constants
+  const minPrice = product.priceRange.minVariantPrice;
+  const packSize = 1.92; // m² per pack
+  const pricePerM2 = parseFloat(minPrice.amount);
 
-        return variant.selectedOptions.every((option) => options[option.name] === option.value);
-      })?.node || null
-    );
+  // Custom hooks
+  const { calculationState, orderState, calculations, updateCalculationState, updateOrderState } =
+    useCalculator(packSize, pricePerM2);
+
+  const {
+    handleAddToCartWithQuantity,
+    handleOrderSample,
+    isInCart,
+    isAddingToCart,
+    isOrderingSample,
+  } = useProductCart(product);
+
+  const { accordionState, toggleAccordion } = useAccordion();
+
+  // Get appropriate quantity based on active tab
+  const getQuantityForCart = () => {
+    return activeTab === 'calculate' ? calculations.packsNeeded : orderState.quantity;
   };
 
-  // Handle option selection
-  const handleOptionChange = (optionName: string, value: string) => {
-    const newOptions = { ...selectedOptions, [optionName]: value };
-    setSelectedOptions(newOptions);
-
-    const variant = findVariantByOptions(newOptions);
-    setSelectedVariant(variant);
-  };
-
-  // Handle add to cart
-  const handleAddToCart = async () => {
-    if (!selectedVariant || !selectedVariant.availableForSale) return;
-
-    setIsAdding(true);
-    try {
-      addItem(product, selectedVariant, quantity);
-      // Open cart drawer after adding item
-      openCart();
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-    } finally {
-      setIsAdding(false);
+  // Handle color selection
+  const handleColorSelect = (index: number) => {
+    if (colors[index]) {
+      setSelectedColor(colors[index]);
+      // Update the active image index to match the color if possible
+      setActiveIndex(index % images.length);
     }
   };
-
-  if (!selectedVariant) {
-    return <div>Loading...</div>;
-  }
 
   return (
-    <div className='space-y-8'>
-      {/* Product Options */}
-      {product.options && product.options.length > 0 && (
-        <div className='space-y-6'>
-          <h3 className='text-lg font-semibold text-gray-900'>Product Options</h3>
-          {product.options.map((option) => (
-            <div key={option.id} className='bg-gray-50 p-4 rounded-lg'>
-              <label className='block text-sm font-medium text-gray-700 mb-3'>{option.name}</label>
-              <div className='flex flex-wrap gap-3'>
-                {option.values.map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleOptionChange(option.name, value)}
-                    className={`px-4 py-2 text-sm border-2 rounded-lg transition-all duration-200 font-medium ${
-                      selectedOptions[option.name] === value
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
-                    }`}
-                  >
-                    {value}
-                  </button>
-                ))}
+    <div className='w-full px-4 py-6'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12'>
+        {/* Left: Gallery */}
+        <ProductGallery
+          images={images}
+          activeIndex={activeIndex}
+          onImageSelect={setActiveIndex}
+          productTitle={product.title}
+        />
+
+        {/* Right: Details */}
+        <div className='flex flex-col justify-between space-y-2'>
+          {/* Breadcrumb */}
+          <div className='text-sm text-gray-500'>
+            <span>Home</span> <span>/</span> <span>Shop</span> <span>/</span>{' '}
+            <span className='text-gray-700'>{product.title}</span>
+          </div>
+
+          {/* Rating */}
+          <ProductRating />
+
+          {/* Title */}
+          <h1 className='text-3xl font-bold text-[#1e3a8a]'>{product.title}</h1>
+
+          {/* Specifications (merge simple metafields with metaobject fields if present) */}
+          <ProductSpecifications
+            metafields={
+              product.metafields && product.metafields.length > 0
+                ? product.metafields
+                : (product.specifications?.references?.nodes || []).flatMap((m) =>
+                    m.fields.map((f) => ({
+                      namespace: 'custom',
+                      key: f.key,
+                      value: f.value,
+                      type: 'single_line_text_field',
+                    })),
+                  )
+            }
+          />
+
+          {/* Traditional Color Selector - only show if colors exist */}
+          {colors.length > 0 && (
+            <ColorSelector
+              colors={colors}
+              activeIndex={colors.indexOf(selectedColor)}
+              onColorSelect={handleColorSelect}
+              images={images}
+            />
+          )}
+
+          {/* Price */}
+          <div>
+            <div className='flex items-center justify-between'>
+              <span className='text-xl font-bold text-gray-900'>
+                Total Price: £
+                {selectedColor
+                  ? (
+                      parseFloat(product.priceRange.minVariantPrice.amount) +
+                      parseFloat(getPriceForColor(product, selectedColor))
+                    ).toFixed(2)
+                  : product.priceRange.minVariantPrice.amount}{' '}
+                <span className='text-sm font-normal'>per m²</span>
+              </span>
+              <div className='flex items-center gap-2'>
+                <span className='text-red-600 font-medium'>Was:£34.99</span>
+                <span className='bg-red-600 text-white text-xs px-2 py-1 rounded-full'>-34%</span>
               </div>
             </div>
-          ))}
+            <p className='text-sm text-gray-600'>£44.14 per pack</p>
+          </div>
+
+          {/* Calculate and Order Section - Tabbed Interface */}
+          <div className='space-y-0'>
+            {/* Tab Navigation */}
+            <div className='flex gap-2 mb-0'>
+              <button
+                onClick={() => setActiveTab('calculate')}
+                className={`flex-1 py-3 px-6 text-center font-medium rounded-t-lg transition-colors ${
+                  activeTab === 'calculate'
+                    ? 'text-amber-700'
+                    : 'bg-transparent border border-amber-600 text-amber-700 hover:bg-amber-50 mb-1'
+                }`}
+                style={activeTab === 'calculate' ? { backgroundColor: '#EFE2CC' } : {}}
+              >
+                Calculate flooring
+              </button>
+              <button
+                onClick={() => setActiveTab('order')}
+                className={`flex-1 py-3 px-6 text-center font-medium rounded-t-lg transition-colors ${
+                  activeTab === 'order'
+                    ? 'text-amber-700'
+                    : 'bg-transparent border border-amber-600 text-amber-700 hover:bg-amber-50 mb-1'
+                }`}
+                style={activeTab === 'order' ? { backgroundColor: '#EFE2CC' } : {}}
+              >
+                Order packets
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'calculate' && (
+              <CalculatorTab
+                calculationState={calculationState}
+                calculations={calculations}
+                packSize={packSize}
+                onUpdateCalculation={updateCalculationState}
+              />
+            )}
+
+            {activeTab === 'order' && (
+              <OrderTab
+                orderState={orderState}
+                calculations={calculations}
+                packSize={packSize}
+                onUpdateOrder={updateOrderState}
+              />
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <ActionButtons
+            onAddToCart={handleAddToCartWithQuantity}
+            handleOrderSample={handleOrderSample}
+            isInCart={isInCart}
+            isAddingToCart={isAddingToCart}
+            isOrderingSample={isOrderingSample}
+            quantity={getQuantityForCart()}
+          />
+
+          {/* Visual Products Section */}
+          <VisualSimilarProducts currentProduct={product} />
         </div>
-      )}
+      </div>
 
-      {/* Flooring Calculator */}
-      <FlooringCalculator
-        product={product}
-        selectedVariant={selectedVariant}
-        onAddToCart={(quantity) => {
-          setQuantity(quantity);
-          handleAddToCart();
-        }}
-        isAdding={isAdding}
-      />
+      {/* Lower Section - Product Info & Services */}
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12'>
+        {/* Left - Product Specifications */}
+        <ProductSpecificationsDetails />
 
-      {/* Product Highlights */}
-      <div className='bg-blue-50 p-4 rounded-lg'>
-        <h4 className='font-semibold text-blue-900 mb-3'>Why Choose This Product?</h4>
-        <ul className='space-y-2 text-sm text-blue-800'>
-          <li className='flex items-center'>
-            <svg className='w-4 h-4 mr-2 text-blue-600' fill='currentColor' viewBox='0 0 20 20'>
-              <path
-                fillRule='evenodd'
-                d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                clipRule='evenodd'
-              />
-            </svg>
-            Premium quality materials
-          </li>
-          <li className='flex items-center'>
-            <svg className='w-4 h-4 mr-2 text-blue-600' fill='currentColor' viewBox='0 0 20 20'>
-              <path
-                fillRule='evenodd'
-                d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                clipRule='evenodd'
-              />
-            </svg>
-            Easy click-lock installation
-          </li>
-          <li className='flex items-center'>
-            <svg className='w-4 h-4 mr-2 text-blue-600' fill='currentColor' viewBox='0 0 20 20'>
-              <path
-                fillRule='evenodd'
-                d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'
-                clipRule='evenodd'
-              />
-            </svg>
-            25-year warranty included
-          </li>
-        </ul>
+        {/* Right - Services */}
+        <div className='space-y-4'>
+          {/* Delivery Banner */}
+          <div className='bg-red-600 text-white rounded-xl p-4 text-center'>
+            <p className='font-semibold'>
+              FREE IN-HOME DELIVERY <span className='italic'>On Orders Over £499</span>
+            </p>
+          </div>
+
+          {/* Accordions */}
+          <AccordionItem
+            title='Choose Your Delivery Date'
+            isOpen={accordionState.delivery}
+            onToggle={() => toggleAccordion('delivery')}
+            icon={
+              <svg
+                className={`w-5 h-5 ${accordionState.delivery ? 'text-white' : 'text-blue-600'}`}
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 003 2z'
+                />
+              </svg>
+            }
+          >
+            <div className='space-y-3'>
+              <p className='text-sm text-gray-600'>Select your preferred delivery date:</p>
+              <div className='grid grid-cols-2 gap-2'>
+                <button className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'>
+                  Monday, Dec 16
+                </button>
+                <button className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'>
+                  Tuesday, Dec 17
+                </button>
+                <button className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'>
+                  Wednesday, Dec 18
+                </button>
+                <button className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'>
+                  Thursday, Dec 19
+                </button>
+              </div>
+              <p className='text-xs text-gray-500'>Free delivery on orders over £499</p>
+            </div>
+          </AccordionItem>
+
+          <AccordionItem
+            title='Flexible Payment Plans With Klarna'
+            isOpen={accordionState.klarna}
+            onToggle={() => toggleAccordion('klarna')}
+            icon={
+              <svg
+                className={`w-5 h-5 ${accordionState.klarna ? 'text-white' : 'text-blue-600'}`}
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'
+                />
+              </svg>
+            }
+          >
+            <div className='text-sm text-gray-600 space-y-2'>
+              <p>
+                With our flexible payment plans through Klarna, you can easily manage the cost of
+                your new flooring.
+              </p>
+              <p>
+                Choose from options like splitting the total into interest-free instalments or
+                delaying payment for up to 30 days.
+              </p>
+              <p>
+                Check out our Klarna page for more information and find the payment option that
+                works best for you.
+              </p>
+            </div>
+          </AccordionItem>
+
+          <AccordionItem
+            title='30-Day Hassle Free Returns'
+            isOpen={accordionState.returns}
+            onToggle={() => toggleAccordion('returns')}
+            icon={
+              <svg
+                className={`w-5 h-5 ${accordionState.returns ? 'text-white' : 'text-blue-600'}`}
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6'
+                />
+              </svg>
+            }
+          >
+            <div className='space-y-3'>
+              <p className='text-sm text-gray-600'>Easy returns within 30 days of purchase:</p>
+              <ul className='text-sm text-gray-600 space-y-1'>
+                <li>• Free return collection service</li>
+                <li>• Full refund on unused items</li>
+                <li>• Original packaging required</li>
+                <li>• No restocking fees</li>
+              </ul>
+              <p className='text-xs text-gray-500'>
+                Terms and conditions apply. See our returns policy for full details.
+              </p>
+            </div>
+          </AccordionItem>
+        </div>
       </div>
     </div>
   );
 };
 
-export default ProductDetailClient;
+export default ProductDetailModern;

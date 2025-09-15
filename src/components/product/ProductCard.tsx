@@ -89,6 +89,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className='bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200 relative w-full h-full flex flex-col'>
+      {/* Discount badge */}
+      {hasDiscount && discount && (
+        <div className='absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10'>
+          -{discount}%
+        </div>
+      )}
+
       {/* Product Image */}
       <Link href={`/products/${product.handle}`} className='block'>
         <div className='aspect-[4/3] w-full overflow-hidden bg-gray-50'>
@@ -123,9 +130,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <div className='w-full h-px bg-gray-300 mb-1.5'></div>
 
           {/* Specifications - Single line format */}
-          <div className='text-sm text-gray-600 mb-2 text-center'>
-            W:{dimensions.width || '100mm'} &nbsp;&nbsp;&nbsp; T:{dimensions.thickness || '12mm'}{' '}
-            &nbsp;&nbsp;&nbsp; L:{dimensions.length || '600mm'}
+          <div className='text-xs text-gray-600 mb-2 text-center'>
+            W:{dimensions.width || '100mm'} &nbsp;&nbsp; T:{dimensions.thickness || '12mm'}{' '}
+            &nbsp;&nbsp; L:{dimensions.length || '600mm'}
           </div>
         </div>
 
@@ -134,15 +141,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
           <div>
             {hasDiscount && originalPrice && (
               <div className='flex items-center gap-2 mb-1'>
-                <span className='text-sm text-gray-400 line-through'>
+                <span className='text-xs text-gray-400 line-through'>
                   £{originalPrice.toFixed(2)} m²
-                </span>
-                <span className='bg-red-500 text-white text-sm px-2 py-1 rounded-full'>
-                  -{discount}%
                 </span>
               </div>
             )}
-            <div className='text-sm font-bold text-gray-400'>£{price.toFixed(2)} m2</div>
+            <div className='text-base font-bold text-gray-700'>
+              £{price.toFixed(2)} <span className='text-xs'>m2</span>
+            </div>
           </div>
 
           {/* Order Sample Button */}
@@ -150,7 +156,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <button
               onClick={handleOrderSample}
               disabled={isLoading}
-              className={`py-1.5 px-2.5 xl:py-2.5 xl:px-4 rounded-lg text-xs font-medium transition-colors ${
+              className={`py-1.5 px-2.5 xl:py-2 xl:px-3 rounded-lg text-xs font-bold transition-colors ${
                 isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
                   : isInCart
@@ -160,7 +166,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             >
               {isLoading ? (
                 <span className='flex items-center gap-1'>
-                  <svg className='w-4 h-4 animate-spin' fill='none' viewBox='0 0 24 24'>
+                  <svg className='w-3 h-3 animate-spin' fill='none' viewBox='0 0 24 24'>
                     <circle
                       className='opacity-25'
                       cx='12'
@@ -172,10 +178,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     <path
                       className='opacity-75'
                       fill='currentColor'
+                      fillRule='evenodd'
                       d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                      clipRule='evenodd'
                     />
                   </svg>
-                  Adding...
+                  <span className='hidden sm:inline'>Adding...</span>
                 </span>
               ) : isInCart ? (
                 <span className='flex items-center gap-1'>
@@ -186,13 +194,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                       clipRule='evenodd'
                     />
                   </svg>
-                  <span className='hidden xl:inline'>View Basket</span>
-                  <span className='xl:hidden'>Basket</span>
+                  <span className='hidden sm:inline'>View Basket</span>
+                  <span className='sm:hidden'>Basket</span>
                 </span>
               ) : (
                 <span>
-                  <span className='hidden xl:inline'>Order Sample</span>
-                  <span className='xl:hidden'>Sample</span>
+                  <span className='hidden sm:inline'>Order Sample</span>
+                  <span className='sm:hidden'>Sample</span>
                 </span>
               )}
             </button>

@@ -8,6 +8,7 @@ import LeftSidebarFilters from '@/components/ui/LeftSidebarFilters';
 import MobileFiltersWrapper from '@/components/ui/MobileFiltersWrapper';
 import SortByDropdown from '@/components/ui/SortByDropdown';
 import GridToggle from '@/components/ui/GridToggle';
+import YouMayAlsoLike from '@/components/product/YouMayAlsoLike';
 
 interface ProductsPageProps {
   searchParams: Promise<{
@@ -44,87 +45,93 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       ? await shopifyApi.searchProducts(search, 100)
       : await shopifyApi.getProducts(100);
 
-    let filteredProducts = response.products.edges.map((edge) => edge.node);
-    totalProducts = filteredProducts.length;
+    // Check if we got a valid response
+    if (response && response.products && response.products.edges) {
+      let filteredProducts = response.products.edges.map((edge) => edge.node);
+      totalProducts = filteredProducts.length;
 
-    // Apply category filter
-    if (category) {
-      filteredProducts = filteredProducts.filter(
-        (product) =>
-          product.title.toLowerCase().includes(category.toLowerCase()) ||
-          product.description.toLowerCase().includes(category.toLowerCase()),
-      );
-    }
-
-    // Apply brand filter
-    if (brands.length > 0) {
-      filteredProducts = filteredProducts.filter((product) =>
-        brands.some((brand) => product.title.toLowerCase().includes(brand.toLowerCase())),
-      );
-    }
-
-    // Apply price range filter
-    if (priceRange) {
-      const [min, max] = priceRange.split('-').map(Number);
-      filteredProducts = filteredProducts.filter((product) => {
-        const price = parseFloat(product.priceRange.minVariantPrice.amount);
-        if (max === 1000) {
-          return price >= min;
-        }
-        return price >= min && price <= max;
-      });
-    }
-
-    // Apply sorting
-    switch (sortBy) {
-      case 'price-low':
-        filteredProducts.sort(
-          (a, b) =>
-            parseFloat(a.priceRange.minVariantPrice.amount) -
-            parseFloat(b.priceRange.minVariantPrice.amount),
+      // Apply category filter
+      if (category) {
+        filteredProducts = filteredProducts.filter(
+          (product) =>
+            product.title.toLowerCase().includes(category.toLowerCase()) ||
+            product.description.toLowerCase().includes(category.toLowerCase()),
         );
-        break;
-      case 'price-high':
-        filteredProducts.sort(
-          (a, b) =>
-            parseFloat(b.priceRange.minVariantPrice.amount) -
-            parseFloat(a.priceRange.minVariantPrice.amount),
+      }
+
+      // Apply brand filter
+      if (brands.length > 0) {
+        filteredProducts = filteredProducts.filter((product) =>
+          brands.some((brand) => product.title.toLowerCase().includes(brand.toLowerCase())),
         );
-        break;
-      case 'name-asc':
-        filteredProducts.sort((a, b) => a.title.localeCompare(b.title));
-        break;
-      case 'name-desc':
-        filteredProducts.sort((a, b) => b.title.localeCompare(a.title));
-        break;
-      case 'newest':
-        filteredProducts.sort((a, b) => b.id.localeCompare(a.id));
-        break;
-      default:
-        break;
+      }
+
+      // Apply price range filter
+      if (priceRange) {
+        const [min, max] = priceRange.split('-').map(Number);
+        filteredProducts = filteredProducts.filter((product) => {
+          const price = parseFloat(product.priceRange.minVariantPrice.amount);
+          if (max === 1000) {
+            return price >= min;
+          }
+          return price >= min && price <= max;
+        });
+      }
+
+      // Apply sorting
+      switch (sortBy) {
+        case 'price-low':
+          filteredProducts.sort(
+            (a, b) =>
+              parseFloat(a.priceRange.minVariantPrice.amount) -
+              parseFloat(b.priceRange.minVariantPrice.amount),
+          );
+          break;
+        case 'price-high':
+          filteredProducts.sort(
+            (a, b) =>
+              parseFloat(b.priceRange.minVariantPrice.amount) -
+              parseFloat(a.priceRange.minVariantPrice.amount),
+          );
+          break;
+        case 'name-asc':
+          filteredProducts.sort((a, b) => a.title.localeCompare(b.title));
+          break;
+        case 'name-desc':
+          filteredProducts.sort((a, b) => b.title.localeCompare(a.title));
+          break;
+        case 'newest':
+          filteredProducts.sort((a, b) => b.id.localeCompare(a.id));
+          break;
+        default:
+          break;
+      }
+
+      // Apply pagination
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      products = filteredProducts.slice(startIndex, endIndex);
+      totalProducts = filteredProducts.length;
+
+      // Update page info
+      pageInfo = {
+        hasNextPage: endIndex < filteredProducts.length,
+        hasPreviousPage: page > 1,
+      };
     }
-
-    // Apply pagination
-    const startIndex = (page - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    products = filteredProducts.slice(startIndex, endIndex);
-    totalProducts = filteredProducts.length;
-
-    // Update page info
-    pageInfo = {
-      hasNextPage: endIndex < filteredProducts.length,
-      hasPreviousPage: page > 1,
-    };
   } catch (err) {
     error = 'Failed to load products';
     console.error('Error loading products:', err);
   }
 
   // Get unique categories and brands for filters
-  const allProducts = await shopifyApi.getProducts(100);
+  const allProductsResponse = await shopifyApi.getProducts(100);
+  const allProducts =
+    allProductsResponse && allProductsResponse.products ? allProductsResponse.products.edges : [];
+
   const uniqueCategories = [
     ...new Set(
-      allProducts.products.edges.map((edge) => {
+      allProducts.map((edge) => {
         const title = edge.node.title.toLowerCase();
         if (title.includes('laminate')) return 'Laminate';
         if (title.includes('vinyl')) return 'Vinyl';
@@ -137,7 +144,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
 
   const uniqueBrands = [
     ...new Set(
-      allProducts.products.edges.map((edge) => {
+      allProducts.map((edge) => {
         const title = edge.node.title;
         // Extract brand from title (assuming brand is first word)
         return title.split(' ')[0];

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ShopifyArticle } from '@/lib/types/shopify';
 import BlogCard from './BlogCard';
 import { shopifyApi } from '@/lib/shopify/api';
@@ -24,13 +24,7 @@ const BlogsSection: React.FC<BlogsSectionProps> = ({
   const [loading, setLoading] = useState(fetchFromAPI && initialArticles.length === 0);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (fetchFromAPI && initialArticles.length === 0) {
-      fetchArticles();
-    }
-  }, [fetchFromAPI, initialArticles.length]);
-
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -45,7 +39,13 @@ const BlogsSection: React.FC<BlogsSectionProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [maxArticles]);
+
+  useEffect(() => {
+    if (fetchFromAPI && initialArticles.length === 0) {
+      fetchArticles();
+    }
+  }, [fetchFromAPI, initialArticles.length, fetchArticles]);
 
   const getFallbackArticles = (): ShopifyArticle[] => {
     return [
@@ -53,7 +53,8 @@ const BlogsSection: React.FC<BlogsSectionProps> = ({
         id: '1',
         handle: 'what-is-engineered-wood-flooring',
         title: 'What is Engineered Wood Flooring?',
-        excerpt: 'Learn about the benefits and features of engineered wood flooring for your home renovation project.',
+        excerpt:
+          'Learn about the benefits and features of engineered wood flooring for your home renovation project.',
         content:
           'Engineered wood flooring is a type of flooring that consists of a top layer of real wood veneer bonded to a core of high-quality plywood or fiberboard. This construction makes it more stable than solid wood flooring and suitable for installation over concrete subfloors and with underfloor heating systems. The top layer provides the authentic look and feel of real wood, while the engineered core offers superior stability and resistance to moisture and temperature changes. Engineered wood flooring is an excellent choice for homeowners who want the beauty of real wood with enhanced durability and versatility.',
         contentHtml:
@@ -72,11 +73,12 @@ const BlogsSection: React.FC<BlogsSectionProps> = ({
         id: '2',
         handle: 'what-is-vinyl-flooring',
         title: 'What is Vinyl Flooring?',
-        excerpt: 'Discover the advantages of vinyl flooring for modern homes and commercial spaces.',
+        excerpt:
+          'Discover the advantages of vinyl flooring for modern homes and commercial spaces.',
         content:
-          'Vinyl flooring is a synthetic flooring material made from polyvinyl chloride (PVC). It is known for its durability, water resistance, and affordability. Modern vinyl flooring comes in various styles including luxury vinyl tiles (LVT) and luxury vinyl planks (LVP) that can mimic the look of wood, stone, or tile. Vinyl flooring is particularly popular in kitchens, bathrooms, and other high-moisture areas due to its excellent water resistance. It\'s also easy to maintain and can withstand heavy foot traffic, making it ideal for both residential and commercial applications.',
+          "Vinyl flooring is a synthetic flooring material made from polyvinyl chloride (PVC). It is known for its durability, water resistance, and affordability. Modern vinyl flooring comes in various styles including luxury vinyl tiles (LVT) and luxury vinyl planks (LVP) that can mimic the look of wood, stone, or tile. Vinyl flooring is particularly popular in kitchens, bathrooms, and other high-moisture areas due to its excellent water resistance. It's also easy to maintain and can withstand heavy foot traffic, making it ideal for both residential and commercial applications.",
         contentHtml:
-          '<p>Vinyl flooring is a synthetic flooring material made from polyvinyl chloride (PVC). It is known for its durability, water resistance, and affordability.</p><p>Modern vinyl flooring comes in various styles including luxury vinyl tiles (LVT) and luxury vinyl planks (LVP) that can mimic the look of wood, stone, or tile.</p><p>Vinyl flooring is particularly popular in kitchens, bathrooms, and other high-moisture areas due to its excellent water resistance.</p><p>It\'s also easy to maintain and can withstand heavy foot traffic, making it ideal for both residential and commercial applications.</p>',
+          "<p>Vinyl flooring is a synthetic flooring material made from polyvinyl chloride (PVC). It is known for its durability, water resistance, and affordability.</p><p>Modern vinyl flooring comes in various styles including luxury vinyl tiles (LVT) and luxury vinyl planks (LVP) that can mimic the look of wood, stone, or tile.</p><p>Vinyl flooring is particularly popular in kitchens, bathrooms, and other high-moisture areas due to its excellent water resistance.</p><p>It's also easy to maintain and can withstand heavy foot traffic, making it ideal for both residential and commercial applications.</p>",
         publishedAt: '2024-01-10T14:30:00Z',
         image: {
           id: '2',

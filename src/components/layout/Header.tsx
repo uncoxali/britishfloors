@@ -13,7 +13,7 @@ import CartDrawer from '@/components/cart/CartDrawer';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isOpen: isCartOpen, open: openCart, close: closeCart } = useCartDrawerStore();
+  const { open: openCart } = useCartDrawerStore();
   const { totalQuantity } = useCartStore();
   const { isAuthenticated, isLoading } = useAuthStore();
 

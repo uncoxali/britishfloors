@@ -22,18 +22,27 @@ export interface ShopifySelectedOption {
     value: string;
 }
 
-export interface ShopifyProductVariant {
-    id: string;
-    title: string;
-    price: ShopifyMoney;
-    availableForSale: boolean;
-    selectedOptions?: ShopifySelectedOption[];
+export interface ShopifyMetafield {
+    id?: string;
+    namespace: string;
+    key: string;
+    value: string;
+    type: string;
 }
 
-export interface ShopifyProductOption {
+export interface ShopifyCollection {
     id: string;
-    name: string;
-    values: string[];
+    title: string;
+    handle: string;
+    description: string;
+    image?: ShopifyImage;
+    metafields?: ShopifyMetafield[] | null;
+    products?: {
+        pageInfo: ShopifyPageInfo;
+        edges: Array<{
+            node: ShopifyProduct;
+        }>;
+    };
 }
 
 export interface ShopifyProduct {
@@ -54,18 +63,21 @@ export interface ShopifyProduct {
         }>;
     };
     options?: ShopifyProductOption[];
-}
-
-export interface ShopifyCollection {
-    id: string;
-    title: string;
-    handle: string;
-    description: string;
-    image?: ShopifyImage;
-    products?: {
-        pageInfo: ShopifyPageInfo;
+    metafields?: ShopifyMetafield[] | null;
+    specifications?: {
+        references: {
+            nodes: Array<{
+                id: string;
+                fields: Array<{
+                    key: string;
+                    value: string;
+                }>;
+            }>;
+        };
+    } | null;
+    collections?: {
         edges: Array<{
-            node: ShopifyProduct;
+            node: ShopifyCollection;
         }>;
     };
 }
@@ -168,4 +180,18 @@ export interface ApiResponse<T> {
     data?: T;
     error?: string;
     loading?: boolean;
-} 
+}
+
+export interface ShopifyProductVariant {
+    id: string;
+    title: string;
+    price: ShopifyMoney;
+    availableForSale: boolean;
+    selectedOptions?: ShopifySelectedOption[];
+}
+
+export interface ShopifyProductOption {
+    id: string;
+    name: string;
+    values: string[];
+}

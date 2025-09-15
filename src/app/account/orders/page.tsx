@@ -9,95 +9,6 @@ import { useAuthStore } from '@/store/auth';
 import { formatPrice } from '@/lib/utils/format';
 import OrderCard from '@/components/orders/OrderCard';
 
-// Mock order data (kept for fallback/development)
-const mockOrders = [
-  {
-    id: 'BRF-2024-001',
-    orderNumber: 'BRF-2024-001',
-    date: '2024-01-15',
-    status: 'delivered',
-    total: { amount: '299.99', currencyCode: 'GBP' },
-    items: [
-      {
-        id: '1',
-        title: 'Premium Oak Hardwood Flooring',
-        variantTitle: 'Natural Oak, 20mm thickness',
-        quantity: 2,
-        price: { amount: '149.99', currencyCode: 'GBP' },
-        image: { url: '/placeholder.jpg', altText: 'Oak Flooring' },
-      },
-    ],
-    shippingAddress: {
-      firstName: 'John',
-      lastName: 'Doe',
-      address1: '123 Main Street',
-      city: 'London',
-      province: 'England',
-      zip: 'SW1A 1AA',
-      country: 'United Kingdom',
-    },
-    trackingNumber: 'TRK123456789',
-    estimatedDelivery: '2024-01-20',
-  },
-  {
-    id: 'BRF-2024-002',
-    orderNumber: 'BRF-2024-002',
-    date: '2024-01-10',
-    status: 'processing',
-    total: { amount: '599.98', currencyCode: 'GBP' },
-    items: [
-      {
-        id: '2',
-        title: 'Engineered Maple Flooring',
-        variantTitle: 'Light Maple, 15mm thickness',
-        quantity: 3,
-        price: { amount: '199.99', currencyCode: 'GBP' },
-        image: { url: '/placeholder.jpg', altText: 'Maple Flooring' },
-      },
-    ],
-    shippingAddress: {
-      firstName: 'John',
-      lastName: 'Doe',
-      address1: '123 Main Street',
-      city: 'London',
-      province: 'England',
-      zip: 'SW1A 1AA',
-      country: 'United Kingdom',
-    },
-    trackingNumber: null,
-    estimatedDelivery: '2024-01-25',
-  },
-  {
-    id: 'BRF-2024-003',
-    orderNumber: 'BRF-2024-003',
-    date: '2024-01-05',
-    status: 'cancelled',
-    total: { amount: '149.99', currencyCode: 'GBP' },
-    items: [
-      {
-        id: '3',
-        title: 'Bamboo Flooring',
-        variantTitle: 'Natural Bamboo, 12mm thickness',
-        quantity: 1,
-        price: { amount: '149.99', currencyCode: 'GBP' },
-        image: { url: '/placeholder.jpg', altText: 'Bamboo Flooring' },
-      },
-    ],
-    shippingAddress: {
-      firstName: 'John',
-      lastName: 'Doe',
-      address1: '123 Main Street',
-      city: 'London',
-      province: 'England',
-      zip: 'SW1A 1AA',
-      country: 'United Kingdom',
-    },
-    trackingNumber: null,
-    estimatedDelivery: null,
-    cancellationReason: 'Customer requested cancellation',
-  },
-];
-
 // Define types for Order and its sub-objects
 interface Order {
   id: string;
@@ -189,8 +100,8 @@ const OrderHistoryPage: React.FC = () => {
       } catch (err) {
         console.error('Error fetching orders:', err);
         setError('Failed to load order history');
-        // Fallback to mock data for development
-        setOrders(mockOrders);
+        // Fallback to empty array instead of mock data
+        setOrders([]);
       } finally {
         setIsLoading(false);
       }

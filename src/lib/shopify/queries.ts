@@ -2,8 +2,8 @@ import { gql } from 'graphql-request';
 
 // Product queries
 export const GET_PRODUCTS = gql`
-  query GetProducts($first: Int!, $after: String) {
-    products(first: $first, after: $after) {
+  query GetProducts($first: Int!, $after: String, $query: String) {
+    products(first: $first, after: $after, query: $query) {
       pageInfo {
         hasNextPage
         hasPreviousPage
@@ -37,7 +37,7 @@ export const GET_PRODUCTS = gql`
               }
             }
           }
-          variants(first: 1) {
+          variants(first: 250) {
             edges {
               node {
                 id
@@ -47,8 +47,28 @@ export const GET_PRODUCTS = gql`
                   currencyCode
                 }
                 availableForSale
+                selectedOptions {
+                  name
+                  value
+                }
               }
             }
+          }
+          options {
+            id
+            name
+            values
+          }
+          metafields(identifiers: [
+            {namespace: "custom", key: "dimensions"},
+            {namespace: "custom", key: "finish"},
+            {namespace: "product", key: "specifications"},
+            {namespace: "specifications", key: "features"}
+          ]) {
+            namespace
+            key
+            value
+            type
           }
         }
       }
@@ -107,6 +127,78 @@ export const GET_PRODUCT_BY_HANDLE = gql`
         name
         values
       }
+      specifications: metafield(namespace: "custom", key: "product_specifications") {
+        type
+        value
+        # If metafield is single metaobject reference
+        reference {
+          ... on Metaobject {
+            id
+            fields { key value }
+          }
+        }
+        # If metafield is list of metaobject references
+        references(first: 20) {
+          nodes {
+            ... on Metaobject {
+              id
+              fields { key value }
+            }
+          }
+        }
+      }
+      collections(first: 10) {
+        edges {
+          node {
+            id
+            title
+            handle
+            description
+            image {
+              id
+              url
+              altText
+              width
+              height
+            }
+          }
+        }
+      }
+      metafields(identifiers: [
+        {namespace: "custom", key: "dimensions"},
+        {namespace: "custom", key: "finish"},
+        {namespace: "product", key: "specifications"},
+        {namespace: "specifications", key: "features"}
+      ]) {
+        namespace
+        key
+        value
+        type
+      }
+    }
+  }
+`;
+
+// Product with specifications via metaobject reference metafield
+export const GET_PRODUCT_WITH_SPECIFICATIONS = gql`
+  query ProductWithSpecifications($handle: String!) {
+    product(handle: $handle) {
+      id
+      title
+      description
+      specifications: metafield(namespace: "custom", key: "product_specifications") {
+        references(first: 10) {
+          nodes {
+            ... on Metaobject {
+              id
+              fields {
+                key
+                value
+              }
+            }
+          }
+        }
+      }
     }
   }
 `;
@@ -114,7 +206,7 @@ export const GET_PRODUCT_BY_HANDLE = gql`
 // Collection queries
 export const GET_COLLECTIONS = gql`
   query GetCollections($first: Int!) {
-    collections(first: $first) {
+    collections(first: $first, query: "published_status:published") {
       edges {
         node {
           id
@@ -182,7 +274,7 @@ export const GET_COLLECTION_BY_HANDLE = gql`
                 }
               }
             }
-            variants(first: 1) {
+            variants(first: 250) {
               edges {
                 node {
                   id
@@ -192,8 +284,28 @@ export const GET_COLLECTION_BY_HANDLE = gql`
                     currencyCode
                   }
                   availableForSale
+                  selectedOptions {
+                    name
+                    value
+                  }
                 }
               }
+            }
+            options {
+              id
+              name
+              values
+            }
+            metafields(identifiers: [
+              {namespace: "custom", key: "dimensions"},
+              {namespace: "custom", key: "finish"},
+              {namespace: "product", key: "specifications"},
+              {namespace: "specifications", key: "features"}
+            ]) {
+              namespace
+              key
+              value
+              type
             }
           }
         }
@@ -239,7 +351,7 @@ export const SEARCH_PRODUCTS = gql`
               }
             }
           }
-          variants(first: 1) {
+          variants(first: 250) {
             edges {
               node {
                 id
@@ -249,8 +361,28 @@ export const SEARCH_PRODUCTS = gql`
                   currencyCode
                 }
                 availableForSale
+                selectedOptions {
+                  name
+                  value
+                }
               }
             }
+          }
+          options {
+            id
+            name
+            values
+          }
+          metafields(identifiers: [
+            {namespace: "custom", key: "dimensions"},
+            {namespace: "custom", key: "finish"},
+            {namespace: "product", key: "specifications"},
+            {namespace: "specifications", key: "features"}
+          ]) {
+            namespace
+            key
+            value
+            type
           }
         }
       }
@@ -395,4 +527,140 @@ export const GET_ARTICLE_BY_HANDLE = gql`
       }
     }
   }
-`; 
+`;
+
+// Get similar products by collection
+export const GET_SIMILAR_PRODUCTS = gql`
+  query GetSimilarProducts($collectionHandle: String!, $first: Int!, $excludeId: ID!) {
+    collection(handle: $collectionHandle) {
+      products(first: $first, query: "published_status:published") {
+        edges {
+          node {
+            id
+            title
+            handle
+            description
+            priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            images(first: 1) {
+              edges {
+                node {
+                  id
+                  url
+                  altText
+                  width
+                  height
+                }
+              }
+            }
+            variants(first: 250) {
+              edges {
+                node {
+                  id
+                  title
+                  price {
+                    amount
+                    currencyCode
+                  }
+                  availableForSale
+                  selectedOptions {
+                    name
+                    value
+                  }
+                }
+              }
+            }
+            options {
+              id
+              name
+              values
+            }
+            metafields(identifiers: [
+              {namespace: "custom", key: "dimensions"},
+              {namespace: "custom", key: "finish"},
+              {namespace: "product", key: "specifications"},
+              {namespace: "specifications", key: "features"}
+            ]) {
+              namespace
+              key
+              value
+              type
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+// Get products by tags for similar products
+export const GET_PRODUCTS_BY_TAG = gql`
+  query GetProductsByTag($query: String!, $first: Int!) {
+    products(query: $query, first: $first) {
+      edges {
+        node {
+          id
+          title
+          handle
+          description
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          images(first: 1) {
+            edges {
+              node {
+                id
+                url
+                altText
+                width
+                height
+              }
+            }
+          }
+          variants(first: 250) {
+            edges {
+              node {
+                id
+                title
+                price {
+                  amount
+                  currencyCode
+                }
+                availableForSale
+                selectedOptions {
+                  name
+                  value
+                }
+              }
+            }
+          }
+          options {
+            id
+            name
+            values
+          }
+          metafields(identifiers: [
+            {namespace: "custom", key: "material"},
+            {namespace: "custom", key: "dimensions"},
+            {namespace: "custom", key: "weight"},
+            {namespace: "custom", key: "finish"},
+            {namespace: "product", key: "specifications"},
+            {namespace: "specifications", key: "features"}
+          ]) {
+            namespace
+            key
+            value
+            type
+          }
+        }
+      }
+    }
+  }
+`;

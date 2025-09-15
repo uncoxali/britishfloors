@@ -16,8 +16,6 @@ const SearchResultsFilters: React.FC<SearchResultsFiltersProps> = ({
   categories = ['Laminate', 'Vinyl (LVT)', 'Engineered Wood', 'Parquet', 'Carpet', 'Tile'],
   brands = ['Shaw', 'Mohawk', 'Armstrong', 'Mannington', 'Tarkett'],
   totalResults = 0,
-  currentPage = 1,
-  hasNextPage = false,
   onFiltersChange,
 }) => {
   const router = useRouter();

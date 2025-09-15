@@ -11,7 +11,12 @@ export default async function CollectionsPage() {
 
   try {
     const response = await shopifyApi.getCollections(20);
-    collections = response.collections.edges.map((edge) => edge.node);
+    // Check if we got a valid response
+    if (response && response.collections && response.collections.edges) {
+      collections = response.collections.edges
+        .map((edge) => edge.node)
+        .filter((collection) => collection.handle !== 'mock-collection');
+    }
   } catch (err) {
     error = 'Failed to load collections';
     console.error('Error loading collections:', err);

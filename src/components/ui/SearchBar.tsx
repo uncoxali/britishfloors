@@ -12,7 +12,8 @@ import { shopifyApi } from '@/lib/shopify/api';
 const SearchBar: React.FC = () => {
   const { query, setQuery, results, isLoading, error } = useSearch();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<SearchProduct | null>(null);
+  // const [selectedProduct, setSelectedProduct] = useState<SearchProduct | null>(null); // Unused variable
+  const [, setSelectedProduct] = useState<SearchProduct | null>(null);
   const [isSampleModalOpen, setIsSampleModalOpen] = useState(false);
   const [isAddingSample, setIsAddingSample] = useState<string | null>(null);
   const router = useRouter();

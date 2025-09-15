@@ -18,6 +18,12 @@ interface CollectionPageProps {
 export default async function CollectionPage({ params, searchParams }: CollectionPageProps) {
   const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
+
+  // Check if this is a mock collection and redirect if so
+  if (resolvedParams.handle === 'mock-collection') {
+    notFound();
+  }
+
   const page = parseInt(resolvedSearchParams.page || '1');
   const itemsPerPage = 12;
   const after = page > 1 ? btoa(`arrayconnection:${(page - 1) * itemsPerPage - 1}`) : undefined;
@@ -34,7 +40,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
       after,
     );
     collection = response.collection;
-    if (collection.products) {
+    if (collection && collection.products) {
       products = collection.products.edges.map((edge) => edge.node);
       pageInfo = collection.products.pageInfo;
     }
@@ -43,6 +49,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
     console.error('Error loading collection:', err);
   }
 
+  // If we couldn't find the collection, show 404
   if (error || !collection) {
     notFound();
   }
