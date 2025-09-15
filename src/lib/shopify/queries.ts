@@ -147,6 +147,30 @@ export const GET_PRODUCT_BY_HANDLE = gql`
           }
         }
       }
+      dimensions: metafield(namespace: "custom", key: "dimension2") {
+        reference {
+          ... on Metaobject {
+            id
+            type
+            fields {
+              key
+              value
+            }
+          }
+        }
+        references(first: 10) {
+          nodes {
+            ... on Metaobject {
+              id
+              type
+              fields {
+                key
+                value
+              }
+            }
+          }
+        }
+      }
       collections(first: 10) {
         edges {
           node {
@@ -373,23 +397,82 @@ export const SEARCH_PRODUCTS = gql`
             name
             values
           }
-          metafields(identifiers: [
-            {namespace: "custom", key: "dimensions"},
-            {namespace: "custom", key: "finish"},
-            {namespace: "product", key: "specifications"},
-            {namespace: "specifications", key: "features"}
-          ]) {
+
+          # Normal metafields
+          metafields(
+            identifiers: [
+              { namespace: "custom", key: "dimensions" }
+              { namespace: "custom", key: "finish" }
+              { namespace: "custom", key: "color" }
+              { namespace: "product", key: "specifications" }
+              { namespace: "specifications", key: "features" }
+            ]
+          ) {
             namespace
             key
-            value
             type
+            value
+          }
+
+          # Metaobject reference: product_specifications
+          specifications: metafield(
+            namespace: "custom"
+            key: "product_specifications"
+          ) {
+            reference {
+              ... on Metaobject {
+                id
+                type
+                fields {
+                  key
+                  value
+                }
+              }
+            }
+            references(first: 10) {
+              nodes {
+                ... on Metaobject {
+                  id
+                  type
+                  fields {
+                    key
+                    value
+                  }
+                }
+              }
+            }
+          }
+
+          # Metaobject reference: dimension2
+          dimensions: metafield(namespace: "custom", key: "dimension2") {
+            reference {
+              ... on Metaobject {
+                id
+                type
+                fields {
+                  key
+                  value
+                }
+              }
+            }
+            references(first: 10) {
+              nodes {
+                ... on Metaobject {
+                  id
+                  type
+                  fields {
+                    key
+                    value
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
   }
 `;
-
 // Blog queries
 export const GET_BLOGS = gql`
   query GetBlogs($first: Int!, $after: String) {

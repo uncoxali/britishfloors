@@ -78,12 +78,15 @@ const SearchBar: React.FC = () => {
       const response = await shopifyApi.getProductByHandle(product.handle);
       const fullProduct = response.product;
 
-      // Add sample to cart (using first variant)
-      const firstVariant = fullProduct.variants?.edges[0]?.node;
-      if (firstVariant) {
-        addItem(fullProduct, firstVariant, 1);
-        // Open cart drawer after adding sample
-        openCart();
+      // Check if fullProduct exists before accessing its properties
+      if (fullProduct) {
+        // Add sample to cart (using first variant)
+        const firstVariant = fullProduct.variants?.edges[0]?.node;
+        if (firstVariant) {
+          addItem(fullProduct, firstVariant, 1);
+          // Open cart drawer after adding sample
+          openCart();
+        }
       }
     } catch (error) {
       console.error('Error adding sample to cart:', error);

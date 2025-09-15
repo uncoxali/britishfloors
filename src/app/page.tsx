@@ -13,9 +13,9 @@ export default async function HomePage() {
 
   try {
     const response = await shopifyApi.getProducts(8);
-    products = response.products.edges.map((edge) => edge.node);
-    console.log('Loaded products:', products.length);
-    console.log('Sample product:', products[0]);
+    if (response && response.products && response.products.edges) {
+      products = response.products.edges.map((edge) => edge.node);
+    }
   } catch (err) {
     console.error('Error loading products:', err);
   }
@@ -23,8 +23,6 @@ export default async function HomePage() {
   try {
     const articlesResponse = await shopifyApi.getArticlesWithContent(5);
     articles = articlesResponse.articles.edges.map((edge) => edge.node);
-    console.log('Loaded articles with content:', articles.length);
-    console.log('Sample article:', articles[0]);
   } catch (err) {
     console.error('Error loading articles:', err);
     // Keep articles as empty array, fallback will be used in BlogsSection

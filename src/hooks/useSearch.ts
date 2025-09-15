@@ -64,67 +64,75 @@ export const useSearch = () => {
       const limit = options?.limit || 50; // Increase limit to get more results for filtering
       const response = await shopifyApi.searchProducts(searchQuery, limit);
 
-      // Transform Shopify products to SearchProduct format
-      const transformedProducts: SearchProduct[] = response.products.edges.map((edge) => {
-        const product = edge.node;
-        const price = parseFloat(product.priceRange.minVariantPrice.amount);
+      // Check if response exists before accessing its properties
+      if (response && response.products && response.products.edges) {
+        // Transform Shopify products to SearchProduct format
+        const transformedProducts: SearchProduct[] = response.products.edges.map((edge) => {
+          const product = edge.node;
+          const price = parseFloat(product.priceRange.minVariantPrice.amount);
 
-        // Extract dimensions from title or description if available
-        const dimensions = extractDimensions(product.title + ' ' + product.description);
-        const brand = extractBrand(product.title);
+          // Extract dimensions from title or description if available
+          const dimensions = extractDimensions(product.title + ' ' + product.description);
+          const brand = extractBrand(product.title);
 
-        // Calculate discount if there's a price range
-        let originalPrice: number | undefined;
-        let discount: number | undefined;
+          // Calculate discount if there's a price range
+          let originalPrice: number | undefined;
+          let discount: number | undefined;
 
-        if (product.priceRange.maxVariantPrice.amount !== product.priceRange.minVariantPrice.amount) {
-          const maxPrice = parseFloat(product.priceRange.maxVariantPrice.amount);
-          if (maxPrice > price) {
-            originalPrice = maxPrice;
-            discount = Math.round(((maxPrice - price) / maxPrice) * 100);
+          if (product.priceRange.maxVariantPrice.amount !== product.priceRange.minVariantPrice.amount) {
+            const maxPrice = parseFloat(product.priceRange.maxVariantPrice.amount);
+            if (maxPrice > price) {
+              originalPrice = maxPrice;
+              discount = Math.round(((maxPrice - price) / maxPrice) * 100);
+            }
           }
-        }
 
-        // Get all images
-        const images = product.images.edges.map(edge => edge.node.url);
+          // Get all images
+          const images = product.images.edges.map(edge => edge.node.url);
 
-        return {
-          id: product.id,
-          title: product.title,
-          handle: product.handle,
-          image: images[0] || '/images/sample-product.png',
-          images,
-          width: dimensions.width,
-          thickness: dimensions.thickness,
-          length: dimensions.length,
-          price,
-          originalPrice,
-          discount,
-          category: extractCategory(product.title, product.description),
-          brand,
-          description: product.description
+          return {
+            id: product.id,
+            title: product.title,
+            handle: product.handle,
+            image: images[0] || '/images/sample-product.png',
+            images,
+            width: dimensions.width,
+            thickness: dimensions.thickness,
+            length: dimensions.length,
+            price,
+            originalPrice,
+            discount,
+            category: extractCategory(product.title, product.description),
+            brand,
+            description: product.description
+          };
+        });
+
+        setAllResults(transformedProducts);
+
+        // Generate available filters
+        const categories = [...new Set(transformedProducts.map(p => p.category))];
+        const brands = [...new Set(transformedProducts.map(p => p.brand).filter(Boolean))] as string[];
+        const prices = transformedProducts.map(p => p.price);
+        const priceRange = {
+          min: Math.floor(Math.min(...prices)),
+          max: Math.ceil(Math.max(...prices))
         };
-      });
 
-      setAllResults(transformedProducts);
+        setAvailableFilters({ categories, brands, priceRange });
 
-      // Generate available filters
-      const categories = [...new Set(transformedProducts.map(p => p.category))];
-      const brands = [...new Set(transformedProducts.map(p => p.brand).filter(Boolean))] as string[];
-      const prices = transformedProducts.map(p => p.price);
-      const priceRange = {
-        min: Math.floor(Math.min(...prices)),
-        max: Math.ceil(Math.max(...prices))
-      };
-
-      setAvailableFilters({ categories, brands, priceRange });
-
-      // Apply filters if provided
-      const filtered = applyFiltersToResults(transformedProducts, options?.filters);
-      setFilteredResults(filtered);
-      setResults(options?.limit ? filtered.slice(0, options.limit) : filtered.slice(0, 10));
-      setTotalCount(filtered.length);
-
+        // Apply filters if provided
+        const filtered = applyFiltersToResults(transformedProducts, options?.filters);
+        setFilteredResults(filtered);
+        setResults(options?.limit ? filtered.slice(0, options.limit) : filtered.slice(0, 10));
+        setTotalCount(filtered.length);
+      } else {
+        // Handle case where no products are returned
+        setAllResults([]);
+        setFilteredResults([]);
+        setResults([]);
+        setTotalCount(0);
+      }
     } catch (err) {
       console.error('Search error:', err);
       setError('Failed to search products');

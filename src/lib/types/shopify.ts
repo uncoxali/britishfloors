@@ -65,9 +65,38 @@ export interface ShopifyProduct {
     options?: ShopifyProductOption[];
     metafields?: ShopifyMetafield[] | null;
     specifications?: {
-        references: {
+        reference?: {
+            id: string;
+            type?: string;
+            fields: Array<{
+                key: string;
+                value: string;
+            }>;
+        };
+        references?: {
             nodes: Array<{
                 id: string;
+                type?: string;
+                fields: Array<{
+                    key: string;
+                    value: string;
+                }>;
+            }>;
+        };
+    } | null;
+    dimensions?: {
+        reference?: {
+            id: string;
+            type?: string;
+            fields: Array<{
+                key: string;
+                value: string;
+            }>;
+        };
+        references?: {
+            nodes: Array<{
+                id: string;
+                type?: string;
                 fields: Array<{
                     key: string;
                     value: string;

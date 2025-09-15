@@ -94,20 +94,10 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
           {/* Title */}
           <h1 className='text-3xl font-bold text-[#1e3a8a]'>{product.title}</h1>
 
-          {/* Specifications (merge simple metafields with metaobject fields if present) */}
+          {/* Specifications (use raw dimensions data from API) */}
           <ProductSpecifications
-            metafields={
-              product.metafields && product.metafields.length > 0
-                ? product.metafields
-                : (product.specifications?.references?.nodes || []).flatMap((m) =>
-                    m.fields.map((f) => ({
-                      namespace: 'custom',
-                      key: f.key,
-                      value: f.value,
-                      type: 'single_line_text_field',
-                    })),
-                  )
-            }
+            metafields={product.metafields}
+            specifications={product.dimensions}
           />
 
           {/* Traditional Color Selector - only show if colors exist */}
@@ -207,7 +197,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
       {/* Lower Section - Product Info & Services */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12'>
         {/* Left - Product Specifications */}
-        <ProductSpecificationsDetails />
+        <ProductSpecificationsDetails product={product} />
 
         {/* Right - Services */}
         <div className='space-y-4'>
