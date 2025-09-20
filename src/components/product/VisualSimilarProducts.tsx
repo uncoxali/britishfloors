@@ -20,23 +20,34 @@ const VisualSimilarProducts: React.FC<VisualSimilarProductsProps> = ({ currentPr
       try {
         setLoading(true);
         setError(null);
-        const products = await shopifyApi.getSimilarProducts(currentProduct, 5);
-        setSimilarProducts(products);
+
+        // Add a timeout wrapper to prevent hanging requests
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 8000),
+        );
+
+        const productsPromise = shopifyApi.getSimilarProducts(currentProduct, 5);
+
+        const products = await Promise.race([productsPromise, timeoutPromise]);
+        setSimilarProducts(products || []);
       } catch (error) {
         console.error('Error fetching similar products:', error);
-        setError('Failed to load similar products');
+        // Don't set error state, just fail silently
         setSimilarProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSimilarProducts();
-  }, [currentProduct.id]); // Use only the product ID as dependency instead of the entire object
+    // Add a delay before fetching to avoid immediate API calls
+    const timeoutId = setTimeout(fetchSimilarProducts, 1000);
 
-  // Don't show the component if there's an error or no similar products
-  if (error || similarProducts.length === 0) {
-    return null;
+    return () => clearTimeout(timeoutId);
+  }, [currentProduct.id]);
+
+  // Don't show the component if no similar products, but show error state
+  if (similarProducts.length === 0 && !loading) {
+    return null; // Hide component completely if no products and not loading
   }
 
   if (loading) {

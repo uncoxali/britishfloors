@@ -17,6 +17,7 @@ interface ProductsPageProps {
     category?: string;
     price?: string;
     brands?: string;
+    colors?: string;
     sort?: string;
     grid?: string;
   }>;
@@ -29,6 +30,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
   const category = resolvedSearchParams.category || '';
   const priceRange = resolvedSearchParams.price || '';
   const brands = resolvedSearchParams.brands?.split(',') || [];
+  const colors = resolvedSearchParams.colors?.split(',') || [];
   const sortBy = resolvedSearchParams.sort || 'featured';
   const gridParam = parseInt(resolvedSearchParams.grid || '0');
   const currentGrid = gridParam && gridParam >= 2 && gridParam <= 4 ? gridParam : 3;
@@ -63,6 +65,17 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
       if (brands.length > 0) {
         filteredProducts = filteredProducts.filter((product) =>
           brands.some((brand) => product.title.toLowerCase().includes(brand.toLowerCase())),
+        );
+      }
+
+      // Apply color filter
+      if (colors.length > 0) {
+        filteredProducts = filteredProducts.filter((product) =>
+          colors.some((color) => {
+            const title = product.title.toLowerCase();
+            const description = product.description.toLowerCase();
+            return title.includes(color.toLowerCase()) || description.includes(color.toLowerCase());
+          }),
         );
       }
 
@@ -283,6 +296,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                         ...(category && { category }),
                         ...(priceRange && { price: priceRange }),
                         ...(brands.length > 0 && { brands: brands.join(',') }),
+                        ...(colors.length > 0 && { colors: colors.join(',') }),
                         ...(sortBy !== 'featured' && { sort: sortBy }),
                       }).toString()}`}
                       className='inline-flex items-center px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition-colors'
@@ -333,9 +347,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                               category ? `&category=${category}` : ''
                             }${priceRange ? `&price=${priceRange}` : ''}${
                               brands.length > 0 ? `&brands=${brands.join(',')}` : ''
-                            }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
-                              currentGrid !== 3 ? `&grid=${currentGrid}` : ''
-                            }`}
+                            }${colors.length > 0 ? `&colors=${colors.join(',')}` : ''}${
+                              sortBy !== 'featured' ? `&sort=${sortBy}` : ''
+                            }${currentGrid !== 3 ? `&grid=${currentGrid}` : ''}`}
                             className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors'
                             aria-label='Previous page'
                           >
@@ -393,9 +407,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                                   category ? `&category=${category}` : ''
                                 }${priceRange ? `&price=${priceRange}` : ''}${
                                   brands.length > 0 ? `&brands=${brands.join(',')}` : ''
-                                }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
-                                  currentGrid !== 3 ? `&grid=${currentGrid}` : ''
-                                }`}
+                                }${colors.length > 0 ? `&colors=${colors.join(',')}` : ''}${
+                                  sortBy !== 'featured' ? `&sort=${sortBy}` : ''
+                                }${currentGrid !== 3 ? `&grid=${currentGrid}` : ''}`}
                                 className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors'
                               >
                                 1
@@ -422,9 +436,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                                   category ? `&category=${category}` : ''
                                 }${priceRange ? `&price=${priceRange}` : ''}${
                                   brands.length > 0 ? `&brands=${brands.join(',')}` : ''
-                                }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
-                                  currentGrid !== 3 ? `&grid=${currentGrid}` : ''
-                                }`}
+                                }${colors.length > 0 ? `&colors=${colors.join(',')}` : ''}${
+                                  sortBy !== 'featured' ? `&sort=${sortBy}` : ''
+                                }${currentGrid !== 3 ? `&grid=${currentGrid}` : ''}`}
                                 className={`inline-flex items-center justify-center w-10 h-10 rounded-full border transition-colors ${
                                   i === page
                                     ? 'bg-blue-600 text-white border-blue-600'
@@ -456,8 +470,10 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                                 }${category ? `&category=${category}` : ''}${
                                   priceRange ? `&price=${priceRange}` : ''
                                 }${brands.length > 0 ? `&brands=${brands.join(',')}` : ''}${
-                                  sortBy !== 'featured' ? `&sort=${sortBy}` : ''
-                                }${currentGrid !== 3 ? `&grid=${currentGrid}` : ''}`}
+                                  colors.length > 0 ? `&colors=${colors.join(',')}` : ''
+                                }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
+                                  currentGrid !== 3 ? `&grid=${currentGrid}` : ''
+                                }`}
                                 className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors'
                               >
                                 {totalPages}
@@ -475,9 +491,9 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                               category ? `&category=${category}` : ''
                             }${priceRange ? `&price=${priceRange}` : ''}${
                               brands.length > 0 ? `&brands=${brands.join(',')}` : ''
-                            }${sortBy !== 'featured' ? `&sort=${sortBy}` : ''}${
-                              currentGrid !== 3 ? `&grid=${currentGrid}` : ''
-                            }`}
+                            }${colors.length > 0 ? `&colors=${colors.join(',')}` : ''}${
+                              sortBy !== 'featured' ? `&sort=${sortBy}` : ''
+                            }${currentGrid !== 3 ? `&grid=${currentGrid}` : ''}`}
                             className='inline-flex items-center justify-center w-10 h-10 rounded-full border border-gray-300 text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors'
                             aria-label='Next page'
                           >

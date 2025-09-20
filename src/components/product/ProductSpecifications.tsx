@@ -34,6 +34,14 @@ const parseDimensionValue = (value: string): { value: number; unit: string } | n
       unit: parsed.unit,
     };
   } catch (e) {
+    // If JSON parsing fails, try to handle as a simple number (for pack_size)
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      return {
+        value: numValue,
+        unit: 'SQUARE_METERS', // Default unit for pack size
+      };
+    }
     return null;
   }
 };
@@ -41,9 +49,9 @@ const parseDimensionValue = (value: string): { value: number; unit: string } | n
 // Helper function to format dimension labels
 const formatDimensionLabel = (key: string): string => {
   const labelMap: Record<string, string> = {
-    'length2': 'L:',
-    'width2': 'W:',
-    'thickness2': 'T:',
+    'length': 'L:',
+    'width': 'W:',
+    'thickness': 'T:',
     'pack_size': 'Pack Size:',
   };
 
@@ -53,7 +61,7 @@ const formatDimensionLabel = (key: string): string => {
 // Helper function to format dimension values
 const formatDimensionValue = (key: string, value: string): string => {
   const parsed = parseDimensionValue(value);
-  if (!parsed) return value;
+  if (!parsed || parsed.value === undefined || parsed.value === null) return value;
 
   // Format the unit for display
   const unitMap: Record<string, string> = {
@@ -65,7 +73,7 @@ const formatDimensionValue = (key: string, value: string): string => {
 
   // Special handling for pack size - should be square meters even if API says millimeters
   if (key === 'pack_size') {
-    return `${parsed.value.toFixed(2)} m²`;
+    return `${Number(parsed.value).toFixed(2)} m²`;
   }
 
   const displayUnit = unitMap[parsed.unit] || parsed.unit.toLowerCase();

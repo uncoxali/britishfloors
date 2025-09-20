@@ -5,7 +5,6 @@ import { ShopifyProduct } from '@/lib/types/shopify';
 import { useCalculator } from '@/hooks/useCalculator';
 import { useProductCart } from '@/hooks/useProductCart';
 import { useAccordion } from '@/hooks/useAccordion';
-import { getProductColors, getPriceForColor } from '@/utils/productUtils';
 
 import ProductGallery from '@/components/product/ProductGallery';
 import ColorSelector from '@/components/product/ColorSelector';
@@ -26,19 +25,71 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
   const images = product.images.edges.map((e) => e.node);
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'calculate' | 'order'>('calculate');
-  const [selectedColor, setSelectedColor] = useState<string>('');
-  const colors = getProductColors(product);
 
-  // Set the first color as selected by default if colors exist
-  useEffect(() => {
-    if (colors.length > 0 && !selectedColor) {
-      setSelectedColor(colors[0]);
+  // Function to extract pack size from dimensions
+  const getPackSizeFromDimensions = (): number => {
+    // Default pack size if no dimensions data
+    let packSize = 1.92;
+
+    if (product.dimensions) {
+      // Check for references (array structure)
+      if (product.dimensions.references && product.dimensions.references.nodes.length > 0) {
+        const dimensionData = product.dimensions.references.nodes[0];
+        if (dimensionData && dimensionData.fields) {
+          const packSizeField = dimensionData.fields.find((field) => field.key === 'pack_size');
+          if (packSizeField && packSizeField.value) {
+            // Try direct number conversion first (for simple string values like "1.75")
+            const numValue = parseFloat(packSizeField.value);
+            if (!isNaN(numValue)) {
+              packSize = numValue;
+            } else {
+              // If direct conversion fails, try JSON parsing
+              try {
+                const parsed = JSON.parse(packSizeField.value);
+                if (parsed.value && !isNaN(parsed.value)) {
+                  packSize = Number(parsed.value);
+                }
+              } catch (e) {
+                // If both fail, keep default value
+                console.log('Could not parse pack size from:', packSizeField.value);
+              }
+            }
+          }
+        }
+      }
+      // Check for reference (single object structure)
+      else if (product.dimensions.reference && product.dimensions.reference.fields) {
+        const dimensionData = product.dimensions.reference;
+        if (dimensionData && dimensionData.fields) {
+          const packSizeField = dimensionData.fields.find((field) => field.key === 'pack_size');
+          if (packSizeField && packSizeField.value) {
+            // Try direct number conversion first (for simple string values like "1.75")
+            const numValue = parseFloat(packSizeField.value);
+            if (!isNaN(numValue)) {
+              packSize = numValue;
+            } else {
+              // If direct conversion fails, try JSON parsing
+              try {
+                const parsed = JSON.parse(packSizeField.value);
+                if (parsed.value && !isNaN(parsed.value)) {
+                  packSize = Number(parsed.value);
+                }
+              } catch (e) {
+                // If both fail, keep default value
+                console.log('Could not parse pack size from:', packSizeField.value);
+              }
+            }
+          }
+        }
+      }
     }
-  }, [colors, selectedColor]);
+
+    return packSize;
+  };
 
   // Constants
   const minPrice = product.priceRange.minVariantPrice;
-  const packSize = 1.92; // m² per pack
+  const packSize = getPackSizeFromDimensions(); // Get pack size from dimensions
   const pricePerM2 = parseFloat(minPrice.amount);
 
   // Custom hooks
@@ -58,15 +109,6 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
   // Get appropriate quantity based on active tab
   const getQuantityForCart = () => {
     return activeTab === 'calculate' ? calculations.packsNeeded : orderState.quantity;
-  };
-
-  // Handle color selection
-  const handleColorSelect = (index: number) => {
-    if (colors[index]) {
-      setSelectedColor(colors[index]);
-      // Update the active image index to match the color if possible
-      setActiveIndex(index % images.length);
-    }
   };
 
   return (
@@ -100,27 +142,11 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
             specifications={product.dimensions}
           />
 
-          {/* Traditional Color Selector - only show if colors exist */}
-          {colors.length > 0 && (
-            <ColorSelector
-              colors={colors}
-              activeIndex={colors.indexOf(selectedColor)}
-              onColorSelect={handleColorSelect}
-              images={images}
-            />
-          )}
-
           {/* Price */}
           <div>
             <div className='flex items-center justify-between'>
               <span className='text-xl font-bold text-gray-900'>
-                Total Price: £
-                {selectedColor
-                  ? (
-                      parseFloat(product.priceRange.minVariantPrice.amount) +
-                      parseFloat(getPriceForColor(product, selectedColor))
-                    ).toFixed(2)
-                  : product.priceRange.minVariantPrice.amount}{' '}
+                Total Price: £{product.priceRange.minVariantPrice.amount}{' '}
                 <span className='text-sm font-normal'>per m²</span>
               </span>
               <div className='flex items-center gap-2'>
@@ -128,7 +154,11 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
                 <span className='bg-red-600 text-white text-xs px-2 py-1 rounded-full'>-34%</span>
               </div>
             </div>
-            <p className='text-sm text-gray-600'>£44.14 per pack</p>
+            <p className='text-sm text-gray-600'>
+              £{(parseFloat(product.priceRange.minVariantPrice.amount) * packSize).toFixed(2)} per
+              pack
+            </p>
+            <p className='text-xs text-gray-500'>Each pack contains {packSize}m²</p>
           </div>
 
           {/* Calculate and Order Section - Tabbed Interface */}

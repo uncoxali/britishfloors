@@ -34,21 +34,52 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const isInCart = mounted ? isProductInCart(product.id) : false;
 
-  // Calculate discount
+  // Calculate discount - more realistic discount logic
   const simulatedOriginalPrice = Math.round(price * 1.4);
-  const hasDiscount = price < 100;
+  const hasDiscount = price < 100 && simulatedOriginalPrice > price;
   let originalPrice: number | undefined;
   let discount: number | undefined;
 
   if (hasDiscount) {
     originalPrice = simulatedOriginalPrice;
     discount = Math.round(((simulatedOriginalPrice - price) / simulatedOriginalPrice) * 100);
+    // Ensure discount is at least 10% if we're showing a discount
+    if (discount < 10) {
+      discount = 15; // Default to 15% discount
+      originalPrice = Math.round(price / 0.85); // Recalculate original price for 15% discount
+    }
   }
 
-  // Extract dimensions
-  const extractDimensions = (text: string) => {
+  // Extract dimensions from metaobject (preferred) or fallback to title
+  const parseDimJSON = (val?: string): { value?: number; unit?: string } => {
+    if (!val) return {};
+    try {
+      const o = JSON.parse(val);
+      return { value: o?.value, unit: o?.unit };
+    } catch {
+      return {};
+    }
+  };
+
+  const getDimensions = () => {
+    // Prefer dimensions from product.dimensions or product.specifications metaobject reference
+    const refFields =
+      product?.dimensions?.reference?.fields || product?.specifications?.reference?.fields;
+    if (Array.isArray(refFields)) {
+      const find = (k: string) => refFields.find((f) => f?.key === k)?.value as string | undefined;
+      const width = parseDimJSON(find('width')).value;
+      const thickness = parseDimJSON(find('thickness')).value;
+      const length = parseDimJSON(find('length')).value;
+      return {
+        width: typeof width === 'number' ? `${width}mm` : undefined,
+        thickness: typeof thickness === 'number' ? `${thickness}mm` : undefined,
+        length: typeof length === 'number' ? `${length}mm` : undefined,
+      } as { width?: string; thickness?: string; length?: string };
+    }
+
+    // Fallback: try to extract from title text pattern like "100mm 12mm 600mm"
     const dimensions: { width?: string; thickness?: string; length?: string } = {};
-    const matches = text.match(/(\d+(?:\.\d+)?)\s*mm/gi);
+    const matches = product.title.match(/(\d+(?:\.\d+)?)\s*mm/gi);
     if (matches && matches.length >= 2) {
       dimensions.width = matches[0];
       dimensions.thickness = matches[1];
@@ -57,7 +88,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
     return dimensions;
   };
 
-  const dimensions = extractDimensions(product.title);
+  const dimensions = getDimensions();
 
   const handleOrderSample = async () => {
     if (redirectToProducts) {
@@ -90,7 +121,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div className='bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200 relative w-full h-full flex flex-col'>
       {/* Discount badge */}
-      {hasDiscount && discount && (
+      {hasDiscount && discount && discount > 0 && (
         <div className='absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full z-10'>
           -{discount}%
         </div>
@@ -131,8 +162,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Specifications - Single line format */}
           <div className='text-xs text-gray-600 mb-2 text-center'>
-            W:{dimensions.width || '100mm'} &nbsp;&nbsp; T:{dimensions.thickness || '12mm'}{' '}
-            &nbsp;&nbsp; L:{dimensions.length || '600mm'}
+            W:{dimensions.width || '—'} &nbsp;&nbsp; T:{dimensions.thickness || '—'} &nbsp;&nbsp; L:
+            {dimensions.length || '—'}
           </div>
         </div>
 

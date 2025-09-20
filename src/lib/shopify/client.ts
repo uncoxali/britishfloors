@@ -8,10 +8,11 @@ if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
 }
 
 const shopifyClient = new GraphQLClient(
-    `https://${SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`,
+    `https://${SHOPIFY_STORE_DOMAIN}/api/2023-10/graphql.json`,
     {
         headers: {
             'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_ACCESS_TOKEN,
+            'Content-Type': 'application/json',
         },
     }
 );

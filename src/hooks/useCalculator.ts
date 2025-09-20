@@ -31,14 +31,15 @@ export const useCalculator = (packSize: number, pricePerM2: number) => {
       const l = Number(calculationState.length) || 0;
       return w * l;
     })();
-    
+
     const baseArea = calculationState.calcMethod === 'area' ? areaFromArea : areaFromDims;
     const areaInM2 = calculationState.unit === 'm2' ? baseArea : ftToM2(baseArea);
     const areaWithWastage = calculateAreaWithWastage(areaInM2, calculationState.wastagePercent);
-    const packsNeeded = calculatePacksNeeded(areaWithWastage, packSize);
+    const packsNeeded = calculatePacksNeeded(areaWithWastage, packSize); // round up
     const totalAreaCovered = packsNeeded * packSize;
-    const totalPriceCalculate = totalAreaCovered * pricePerM2;
-    const totalPriceOrder = orderState.quantity * packSize * pricePerM2;
+    const pricePerPack = packSize * pricePerM2;
+    const totalPriceCalculate = packsNeeded * pricePerPack;
+    const totalPriceOrder = orderState.quantity * pricePerPack;
 
     return {
       baseArea,

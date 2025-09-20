@@ -118,10 +118,13 @@ export const shopifyApi = {
     // Search products
     searchProducts: async (query: string, first: number = 12, after?: string): Promise<ShopifyProductsResponse | null> => {
         try {
+            console.log('Searching products with query:', query);
             // Combine the search query with the published status filter
             const combinedQuery = `${query} AND published_status:published`;
             const variables = { query: combinedQuery, first, after };
+            console.log('GraphQL variables:', variables);
             const data = await shopifyClient.request(SEARCH_PRODUCTS, variables);
+            console.log('Search products response:', data);
             return data as ShopifyProductsResponse;
         } catch (error) {
             console.error('Error searching products:', error);
@@ -135,6 +138,11 @@ export const shopifyApi = {
             if (error && typeof error === 'object' && 'request' in error) {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 console.error('Request error:', (error as { request?: any }).request);
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            if (error && typeof error === 'object' && 'message' in error) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                console.error('Error message:', (error as { message?: any }).message);
             }
             // Return a more graceful fallback instead of throwing
             return null;
