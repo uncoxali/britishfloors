@@ -27,16 +27,6 @@ export const GET_PRODUCTS = gql`
               currencyCode
             }
           }
-          compareAtPriceRange {
-            minVariantPrice {
-              amount
-              currencyCode
-            }
-            maxVariantPrice {
-              amount
-              currencyCode
-            }
-          }
           images(first: 1) {
             edges {
               node {
@@ -54,10 +44,6 @@ export const GET_PRODUCTS = gql`
                 id
                 title
                 price {
-                  amount
-                  currencyCode
-                }
-                compareAtPrice {
                   amount
                   currencyCode
                 }
@@ -91,6 +77,12 @@ export const GET_PRODUCTS = gql`
                 }
               }
             }
+          }
+          costPerItem: metafield(namespace: "custom", key: "cost_per_item") {
+            namespace
+            key
+            value
+            type
           }
           
         }
@@ -224,9 +216,39 @@ export const GET_PRODUCT_BY_HANDLE = gql`
           }
         }
       }
+      costPerItem: metafield(namespace: "custom", key: "cost_per_item") {
+        namespace
+        key
+        value
+        type
+      }
+      roomSuitability: metafield(namespace: "custom", key: "room_suitability") {
+        namespace
+        key
+        value
+        type
+        reference {
+          ... on Metaobject {
+            id
+            type
+            fields { key value }
+          }
+        }
+        references(first: 10) {
+          nodes {
+            ... on Metaobject {
+              id
+              type
+              fields { key value }
+            }
+          }
+        }
+      }
       metafields(identifiers: [
         {namespace: "custom", key: "dimensions"},
         {namespace: "custom", key: "finish"},
+        {namespace: "custom", key: "cost_per_item"},
+        {namespace: "custom", key: "room_suitability"},
         {namespace: "product", key: "specifications"},
         {namespace: "specifications", key: "features"}
       ]) {
@@ -375,9 +397,16 @@ export const GET_COLLECTION_BY_HANDLE = gql`
                 }
               }
             }
+            costPerItem: metafield(namespace: "custom", key: "cost_per_item") {
+              namespace
+              key
+              value
+              type
+            }
             metafields(identifiers: [
               {namespace: "custom", key: "dimensions"},
               {namespace: "custom", key: "finish"},
+              {namespace: "custom", key: "cost_per_item"},
               {namespace: "product", key: "specifications"},
               {namespace: "specifications", key: "features"}
             ]) {
@@ -411,6 +440,16 @@ export const SEARCH_PRODUCTS = gql`
           description
           tags
           priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          compareAtPriceRange {
             minVariantPrice {
               amount
               currencyCode
@@ -507,6 +546,14 @@ export const SEARCH_PRODUCTS = gql`
                 }
               }
             }
+          }
+          
+          # Cost per item metafield
+          costPerItem: metafield(namespace: "custom", key: "cost_per_item") {
+            namespace
+            key
+            value
+            type
           }
         }
       }
@@ -718,6 +765,12 @@ export const GET_SIMILAR_PRODUCTS = gql`
               name
               values
             }
+            costPerItem: metafield(namespace: "custom", key: "cost_per_item") {
+              namespace
+              key
+              value
+              type
+            }
           }
         }
       }
@@ -773,6 +826,12 @@ export const GET_PRODUCTS_BY_TAG = gql`
             id
             name
             values
+          }
+          costPerItem: metafield(namespace: "custom", key: "cost_per_item") {
+            namespace
+            key
+            value
+            type
           }
         }
       }

@@ -1,13 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ShopifyProduct } from '@/lib/types/shopify';
 import { useCalculator } from '@/hooks/useCalculator';
 import { useProductCart } from '@/hooks/useProductCart';
 import { useAccordion } from '@/hooks/useAccordion';
 
 import ProductGallery from '@/components/product/ProductGallery';
-import ColorSelector from '@/components/product/ColorSelector';
 import ProductRating from '@/components/product/ProductRating';
 import ProductSpecifications from '@/components/product/ProductSpecifications';
 import CalculatorTab from '@/components/product/CalculatorTab';
@@ -16,85 +15,81 @@ import ActionButtons from '@/components/product/ActionButtons';
 import VisualSimilarProducts from '@/components/product/VisualSimilarProducts';
 import ProductSpecificationsDetails from '@/components/product/ProductSpecificationsDetails';
 import AccordionItem from '@/components/ui/AccordionItem';
+import ProductAccordionItem from '@/components/ui/ProductAccordionItem';
+import {
+  parseRoomSuitabilityData,
+  parseProductDescription,
+  getIconPath,
+} from '@/utils/roomSuitabilityUtils';
 
 interface ProductDetailModernProps {
   product: ShopifyProduct;
 }
 
+// Helper function to safely parse JSON values
+const safeJsonParse = (value: string): unknown => {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
+// Helper function to extract numeric value from various formats
+const extractNumericValue = (value: string): number | null => {
+  if (!value) return null;
+
+  // Try direct number conversion first
+  const directNum = parseFloat(value);
+  if (!isNaN(directNum)) return directNum;
+
+  // Try JSON parsing
+  const parsed = safeJsonParse(value);
+  if (parsed && typeof parsed === 'object' && parsed !== null && 'value' in parsed) {
+    const parsedObj = parsed as { value: unknown };
+    if (typeof parsedObj.value === 'number') return parsedObj.value;
+  }
+  if (typeof parsed === 'number') return parsed;
+
+  return null;
+};
+
 const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) => {
-  const images = product.images.edges.map((e) => e.node);
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'calculate' | 'order'>('calculate');
 
-  // Function to extract pack size from dimensions
-  const getPackSizeFromDimensions = (): number => {
-    // Default pack size if no dimensions data
-    let packSize = 1.92;
+  // Independent accordion states - each can be opened/closed separately
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
+  const [isRoomSuitabilityOpen, setIsRoomSuitabilityOpen] = useState(false);
 
-    if (product.dimensions) {
-      // Check for references (array structure)
-      if (product.dimensions.references && product.dimensions.references.nodes.length > 0) {
-        const dimensionData = product.dimensions.references.nodes[0];
-        if (dimensionData && dimensionData.fields) {
-          const packSizeField = dimensionData.fields.find((field) => field.key === 'pack_size');
-          if (packSizeField && packSizeField.value) {
-            // Try direct number conversion first (for simple string values like "1.75")
-            const numValue = parseFloat(packSizeField.value);
-            if (!isNaN(numValue)) {
-              packSize = numValue;
-            } else {
-              // If direct conversion fails, try JSON parsing
-              try {
-                const parsed = JSON.parse(packSizeField.value);
-                if (parsed.value && !isNaN(parsed.value)) {
-                  packSize = Number(parsed.value);
-                }
-              } catch (e) {
-                // If both fail, keep default value
-                console.log('Could not parse pack size from:', packSizeField.value);
-              }
-            }
-          }
-        }
-      }
-      // Check for reference (single object structure)
-      else if (product.dimensions.reference && product.dimensions.reference.fields) {
-        const dimensionData = product.dimensions.reference;
-        if (dimensionData && dimensionData.fields) {
-          const packSizeField = dimensionData.fields.find((field) => field.key === 'pack_size');
-          if (packSizeField && packSizeField.value) {
-            // Try direct number conversion first (for simple string values like "1.75")
-            const numValue = parseFloat(packSizeField.value);
-            if (!isNaN(numValue)) {
-              packSize = numValue;
-            } else {
-              // If direct conversion fails, try JSON parsing
-              try {
-                const parsed = JSON.parse(packSizeField.value);
-                if (parsed.value && !isNaN(parsed.value)) {
-                  packSize = Number(parsed.value);
-                }
-              } catch (e) {
-                // If both fail, keep default value
-                console.log('Could not parse pack size from:', packSizeField.value);
-              }
-            }
-          }
-        }
-      }
-    }
+  // Parse dynamic data
+  const roomSuitabilityData = parseRoomSuitabilityData(product.roomSuitability);
+  const descriptionParagraphs = parseProductDescription(product.description);
 
-    return packSize;
-  };
+  // Toggle functions - completely independent behavior
+  const handleDescriptionToggle = useCallback(() => {
+    setIsDescriptionOpen((current) => !current);
+  }, []);
 
-  // Constants
-  const minPrice = product.priceRange.minVariantPrice;
-  const packSize = getPackSizeFromDimensions(); // Get pack size from dimensions
-  const pricePerM2 = parseFloat(minPrice.amount);
+  const handleRoomSuitabilityToggle = useCallback(() => {
+    setIsRoomSuitabilityOpen((current) => !current);
+  }, []);
 
-  // Custom hooks
+  // Service accordions hook (separate from product detail accordions)
+  const { accordionState, toggleAccordion } = useAccordion({
+    delivery: false,
+    klarna: false,
+    returns: false,
+  });
+
+  // Initialize with default values for hooks that need product data
+  const defaultPackSize = 1.92;
+  const defaultPricePerM2 = product.priceRange?.minVariantPrice
+    ? parseFloat(product.priceRange.minVariantPrice.amount)
+    : 0;
+
   const { calculationState, orderState, calculations, updateCalculationState, updateOrderState } =
-    useCalculator(packSize, pricePerM2);
+    useCalculator(defaultPackSize, defaultPricePerM2);
 
   const {
     handleAddToCartWithQuantity,
@@ -104,61 +99,222 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     isOrderingSample,
   } = useProductCart(product);
 
-  const { accordionState, toggleAccordion } = useAccordion();
+  // Memoized product data extraction
+  const productData = useMemo(() => {
+    // Extract images safely
+    const images = product.images?.edges?.map((edge) => edge.node) || [];
+
+    // Function to extract pack size from various sources
+    const getPackSize = (): number => {
+      const defaultPackSize = 1.92;
+
+      // Try dimensions first
+      if (product.dimensions) {
+        const dimensionSources = [
+          product.dimensions.reference,
+          ...(product.dimensions.references?.nodes || []),
+        ].filter(Boolean);
+
+        for (const source of dimensionSources) {
+          if (source?.fields) {
+            const packSizeField = source.fields.find((field) => field.key === 'pack_size');
+            if (packSizeField?.value) {
+              const numValue = extractNumericValue(packSizeField.value);
+              if (numValue && numValue > 0) return numValue;
+            }
+          }
+        }
+      }
+
+      // Try specifications as fallback
+      if (product.specifications) {
+        const specSources = [
+          product.specifications.reference,
+          ...(product.specifications.references?.nodes || []),
+        ].filter(Boolean);
+
+        for (const source of specSources) {
+          if (source?.fields) {
+            const packSizeField = source.fields.find((field) => field.key === 'pack_size');
+            if (packSizeField?.value) {
+              const numValue = extractNumericValue(packSizeField.value);
+              if (numValue && numValue > 0) return numValue;
+            }
+          }
+        }
+      }
+
+      // Try metafields as last resort
+      if (product.metafields) {
+        const packSizeMetafield = product.metafields.find(
+          (field) => field.key === 'pack_size' || field.key === 'packSize',
+        );
+        if (packSizeMetafield?.value) {
+          const numValue = extractNumericValue(packSizeMetafield.value);
+          if (numValue && numValue > 0) return numValue;
+        }
+      }
+
+      return defaultPackSize;
+    };
+
+    // Extract pricing information safely
+    const minPrice = product.priceRange?.minVariantPrice;
+    const compareAtPrice = product.compareAtPriceRange?.minVariantPrice;
+
+    if (!minPrice) {
+      console.error('No price information available for product:', product.id);
+      return null;
+    }
+
+    const pricePerM2 = parseFloat(minPrice.amount);
+    const packSize = getPackSize();
+
+    // Calculate discount information
+    const hasDiscount = compareAtPrice && parseFloat(compareAtPrice.amount) > pricePerM2;
+    const discountPercentage = hasDiscount
+      ? Math.round(
+          ((parseFloat(compareAtPrice.amount) - pricePerM2) / parseFloat(compareAtPrice.amount)) *
+            100,
+        )
+      : 0;
+
+    // Calculate cost per pack - use API value if available, otherwise calculate
+    const apiCostPerItem = product.costPerItem?.value
+      ? extractNumericValue(product.costPerItem.value)
+      : null;
+    const costPerPack =
+      apiCostPerItem && apiCostPerItem > 0 ? apiCostPerItem : pricePerM2 * packSize;
+    const originalCostPerPack = hasDiscount
+      ? parseFloat(compareAtPrice.amount) * packSize
+      : costPerPack;
+
+    return {
+      images,
+      packSize,
+      pricePerM2,
+      costPerPack,
+      originalCostPerPack,
+      hasDiscount,
+      discountPercentage,
+      compareAtPrice,
+      minPrice,
+    };
+  }, [product]);
+
+  // Handle case where product data extraction failed
+  if (!productData) {
+    return (
+      <div className='w-full px-4 py-6'>
+        <div className='text-center text-red-600'>
+          <p>Error loading product information. Please try again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const {
+    images,
+    packSize,
+    pricePerM2,
+    costPerPack,
+    originalCostPerPack,
+    hasDiscount,
+    discountPercentage,
+    compareAtPrice,
+    minPrice,
+  } = productData;
 
   // Get appropriate quantity based on active tab
   const getQuantityForCart = () => {
     return activeTab === 'calculate' ? calculations.packsNeeded : orderState.quantity;
   };
 
+  // Ensure we have at least one image for the gallery
+  const galleryImages =
+    images.length > 0
+      ? images
+      : [
+          {
+            id: 'placeholder',
+            url: '/placeholder-product.jpg',
+            altText: product.title,
+            width: 800,
+            height: 600,
+          },
+        ];
+
   return (
     <div className='w-full px-4 py-6'>
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12'>
         {/* Left: Gallery */}
-        <ProductGallery
-          images={images}
-          activeIndex={activeIndex}
-          onImageSelect={setActiveIndex}
-          productTitle={product.title}
-        />
+        <div>
+          <ProductGallery
+            images={galleryImages}
+            activeIndex={activeIndex}
+            onImageSelect={setActiveIndex}
+            productTitle={product.title}
+          />
+        </div>
 
         {/* Right: Details */}
-        <div className='flex flex-col justify-between space-y-2'>
+        <div className='flex flex-col justify-start space-y-4'>
           {/* Breadcrumb */}
           <div className='text-sm text-gray-500'>
-            <span>Home</span> <span>/</span> <span>Shop</span> <span>/</span>{' '}
-            <span className='text-gray-700'>{product.title}</span>
+            <span>Home</span> <span>/</span> <span>Shop</span>
+            {product.collections?.edges?.[0]?.node && (
+              <>
+                <span>/</span> <span>{product.collections.edges[0].node.title}</span>
+              </>
+            )}
+            <span>/</span> <span className='text-gray-700'>{product.title}</span>
           </div>
 
           {/* Rating */}
           <ProductRating />
 
           {/* Title */}
-          <h1 className='text-3xl font-bold text-[#1e3a8a]'>{product.title}</h1>
+          <h1 className='text-3xl font-bold text-[#1e3a8a]'>{product.title || 'Product Title'}</h1>
 
-          {/* Specifications (use raw dimensions data from API) */}
+          {/* Description */}
+          {product.description && (
+            <div className='text-gray-600 text-sm'>
+              <p>
+                {product.description.length > 150
+                  ? `${product.description.substring(0, 150)}...`
+                  : product.description}
+              </p>
+            </div>
+          )}
+
+          {/* Specifications (use dimensions or specifications data from API) */}
           <ProductSpecifications
             metafields={product.metafields}
-            specifications={product.dimensions}
+            specifications={product.dimensions || product.specifications}
           />
 
           {/* Price */}
           <div>
             <div className='flex items-center justify-between'>
               <span className='text-xl font-bold text-gray-900'>
-                Total Price: £{product.priceRange.minVariantPrice.amount}{' '}
-                <span className='text-sm font-normal'>per m²</span>
+                NOW: £{minPrice.amount} per m²
               </span>
-              <div className='flex items-center gap-2'>
-                <span className='text-red-600 font-medium'>Was:£34.99</span>
-                <span className='bg-red-600 text-white text-xs px-2 py-1 rounded-full'>-34%</span>
-              </div>
+              {hasDiscount && compareAtPrice && (
+                <div className='flex items-center gap-2'>
+                  <span className='text-red-600 font-medium'>Was: £{compareAtPrice.amount}</span>
+                  <span className='bg-red-600 text-white text-xs px-2 py-1 rounded-full'>
+                    -{discountPercentage}%
+                  </span>
+                </div>
+              )}
             </div>
-            <p className='text-sm text-gray-600'>
-              £{(parseFloat(product.priceRange.minVariantPrice.amount) * packSize).toFixed(2)} per
-              pack
-            </p>
-            <p className='text-xs text-gray-500'>Each pack contains {packSize}m²</p>
+            <p className='text-sm text-gray-600'>£{costPerPack.toFixed(2)} per pack</p>
+            {hasDiscount && (
+              <p className='text-xs text-gray-500'>
+                Was: £{originalCostPerPack.toFixed(2)} per pack
+              </p>
+            )}
+            <p className='text-xs text-gray-500'>Each pack contains {packSize.toFixed(2)}m²</p>
           </div>
 
           {/* Calculate and Order Section - Tabbed Interface */}
@@ -210,21 +366,27 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
           </div>
 
           {/* Action Buttons */}
-          <ActionButtons
-            onAddToCart={handleAddToCartWithQuantity}
-            handleOrderSample={handleOrderSample}
-            isInCart={isInCart}
-            isAddingToCart={isAddingToCart}
-            isOrderingSample={isOrderingSample}
-            quantity={getQuantityForCart()}
-          />
+          {product.variants?.edges?.length > 0 ? (
+            <ActionButtons
+              onAddToCart={handleAddToCartWithQuantity}
+              handleOrderSample={handleOrderSample}
+              isInCart={isInCart}
+              isAddingToCart={isAddingToCart}
+              isOrderingSample={isOrderingSample}
+              quantity={getQuantityForCart()}
+            />
+          ) : (
+            <div className='p-4 bg-gray-100 rounded-lg text-center'>
+              <p className='text-gray-600'>This product is currently unavailable</p>
+            </div>
+          )}
 
           {/* Visual Products Section */}
           <VisualSimilarProducts currentProduct={product} />
         </div>
       </div>
 
-      {/* Lower Section - Product Info & Services */}
+      {/* Lower Section - Product Info & Accordions */}
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12'>
         {/* Left - Product Specifications */}
         <ProductSpecificationsDetails product={product} />
@@ -238,7 +400,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
             </p>
           </div>
 
-          {/* Accordions */}
+          {/* Service Accordions */}
           <AccordionItem
             title='Choose Your Delivery Date'
             isOpen={accordionState.delivery}
@@ -262,18 +424,28 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
             <div className='space-y-3'>
               <p className='text-sm text-gray-600'>Select your preferred delivery date:</p>
               <div className='grid grid-cols-2 gap-2'>
-                <button className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'>
-                  Monday, Dec 16
-                </button>
-                <button className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'>
-                  Tuesday, Dec 17
-                </button>
-                <button className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'>
-                  Wednesday, Dec 18
-                </button>
-                <button className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'>
-                  Thursday, Dec 19
-                </button>
+                {(() => {
+                  const today = new Date();
+                  const deliveryDates = [];
+                  for (let i = 1; i <= 4; i++) {
+                    const date = new Date(today);
+                    date.setDate(today.getDate() + i);
+                    const dayName = date.toLocaleDateString('en-GB', { weekday: 'long' });
+                    const dateStr = date.toLocaleDateString('en-GB', {
+                      month: 'short',
+                      day: 'numeric',
+                    });
+                    deliveryDates.push(`${dayName}, ${dateStr}`);
+                  }
+                  return deliveryDates.map((dateStr, index) => (
+                    <button
+                      key={index}
+                      className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'
+                    >
+                      {dateStr}
+                    </button>
+                  ));
+                })()}
               </div>
               <p className='text-xs text-gray-500'>Free delivery on orders over £499</p>
             </div>
@@ -348,6 +520,95 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
               </p>
             </div>
           </AccordionItem>
+        </div>
+      </div>
+
+      {/* Product Details Accordions - Below Product Specifications */}
+      <div className='mt-8 space-y-4'>
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
+          {/* Description Accordion */}
+          <div key='description-accordion'>
+            <ProductAccordionItem
+              title='Description'
+              isOpen={isDescriptionOpen}
+              onToggle={handleDescriptionToggle}
+              variant='golden'
+            >
+              <div className='text-gray-700 text-sm leading-relaxed space-y-3'>
+                {descriptionParagraphs.length > 0 ? (
+                  descriptionParagraphs.map((paragraph, index) => <p key={index}>{paragraph}</p>)
+                ) : (
+                  <p>No description available for this product.</p>
+                )}
+              </div>
+            </ProductAccordionItem>
+          </div>
+
+          {/* Room Suitability Accordion */}
+          <div key='room-suitability-accordion'>
+            <ProductAccordionItem
+              title='Room Suitability'
+              isOpen={isRoomSuitabilityOpen}
+              onToggle={handleRoomSuitabilityToggle}
+              variant='golden'
+            >
+              <div className='space-y-4'>
+                {/* Room Icons - First Row (4 items) */}
+                {roomSuitabilityData.rooms.length > 0 && (
+                  <div className='grid grid-cols-4 gap-3'>
+                    {roomSuitabilityData.rooms.map((room) => (
+                      <div
+                        key={room.id}
+                        className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg'
+                      >
+                        <div className='w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center'>
+                          <svg
+                            className='w-5 h-5 text-amber-600'
+                            fill='currentColor'
+                            viewBox='0 0 24 24'
+                          >
+                            <path d={getIconPath(room.icon)} />
+                          </svg>
+                        </div>
+                        <span className='text-sm font-medium text-gray-700'>{room.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Additional Features - Second Row (2 items) */}
+                {roomSuitabilityData.features.length > 0 && (
+                  <div className='grid grid-cols-2 gap-3'>
+                    {roomSuitabilityData.features.map((feature) => (
+                      <div
+                        key={feature.id}
+                        className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg'
+                      >
+                        <div className='w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center'>
+                          <svg
+                            className='w-5 h-5 text-amber-600'
+                            fill='currentColor'
+                            viewBox='0 0 24 24'
+                          >
+                            <path d={getIconPath(feature.icon)} />
+                          </svg>
+                        </div>
+                        <span className='text-sm font-medium text-gray-700'>{feature.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Fallback message if no data */}
+                {roomSuitabilityData.rooms.length === 0 &&
+                  roomSuitabilityData.features.length === 0 && (
+                    <div className='text-center text-gray-500 py-4'>
+                      <p>No room suitability information available for this product.</p>
+                    </div>
+                  )}
+              </div>
+            </ProductAccordionItem>
+          </div>
         </div>
       </div>
     </div>

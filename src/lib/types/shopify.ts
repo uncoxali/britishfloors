@@ -51,7 +51,9 @@ export interface ShopifyProduct {
     handle: string;
     description: string;
     descriptionHtml?: string;
+    tags?: string[];
     priceRange: ShopifyPriceRange;
+    compareAtPriceRange?: ShopifyPriceRange;
     images: {
         edges: Array<{
             node: ShopifyImage;
@@ -64,6 +66,12 @@ export interface ShopifyProduct {
     };
     options?: ShopifyProductOption[];
     metafields?: ShopifyMetafield[] | null;
+    costPerItem?: {
+        namespace: string;
+        key: string;
+        value: string;
+        type: string;
+    } | null;
     specifications?: {
         reference?: {
             id: string;
@@ -109,6 +117,43 @@ export interface ShopifyProduct {
             node: ShopifyCollection;
         }>;
     };
+    roomSuitability?: {
+        namespace: string;
+        key: string;
+        value: string;
+        type: string;
+        reference?: {
+            id: string;
+            type?: string;
+            fields: Array<{
+                key: string;
+                value: string;
+            }>;
+        };
+        references?: {
+            nodes: Array<{
+                id: string;
+                type?: string;
+                fields: Array<{
+                    key: string;
+                    value: string;
+                }>;
+            }>;
+        };
+    } | null;
+}
+
+// Room Suitability Types
+export interface RoomSuitabilityTag {
+    id: string;
+    name: string;
+    icon: string;
+    category: 'room' | 'feature';
+}
+
+export interface RoomSuitabilityData {
+    rooms: RoomSuitabilityTag[];
+    features: RoomSuitabilityTag[];
 }
 
 export interface ShopifyPageInfo {
@@ -215,6 +260,7 @@ export interface ShopifyProductVariant {
     id: string;
     title: string;
     price: ShopifyMoney;
+    compareAtPrice?: ShopifyMoney;
     availableForSale: boolean;
     selectedOptions?: ShopifySelectedOption[];
 }

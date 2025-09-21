@@ -81,7 +81,7 @@ export default async function HomePage() {
           </div>
 
           {/* Special Offers Section */}
-          <div className='bg-blue-800 rounded-2xl p-3 relative overflow-hidden'>
+          <div className='bg-[#1A4685] rounded-2xl p-3 relative overflow-hidden'>
             <div className='relative z-10'>
               <div className='flex flex-col lg:flex-row items-center gap-4'>
                 {/* Special Offers Image */}

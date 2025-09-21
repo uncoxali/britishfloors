@@ -4,7 +4,7 @@ import { AccordionState } from '@/types/product';
 export const useAccordion = (initialState: Partial<AccordionState> = {}) => {
   const [accordionState, setAccordionState] = useState<AccordionState>({
     delivery: false,
-    klarna: true,
+    klarna: false,
     returns: false,
     ...initialState,
   });
