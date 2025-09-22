@@ -159,15 +159,15 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     };
 
     // Extract pricing information safely
-    const minPrice = product.priceRange?.minVariantPrice;
-    const compareAtPrice = product.compareAtPriceRange?.minVariantPrice;
+    const maxPrice = product.priceRange?.maxVariantPrice;
+    const compareAtPrice = product.compareAtPriceRange?.maxVariantPrice;
 
-    if (!minPrice) {
+    if (!maxPrice) {
       console.error('No price information available for product:', product.id);
       return null;
     }
 
-    const pricePerM2 = parseFloat(minPrice.amount);
+    const pricePerM2 = parseFloat(maxPrice.amount);
     const packSize = getPackSize();
 
     // Calculate discount information
@@ -198,7 +198,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
       hasDiscount,
       discountPercentage,
       compareAtPrice,
-      minPrice,
+      maxPrice,
     };
   }, [product]);
 
@@ -222,7 +222,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     hasDiscount,
     discountPercentage,
     compareAtPrice,
-    minPrice,
+    maxPrice,
   } = productData;
 
   // Get appropriate quantity based on active tab
@@ -297,7 +297,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
           <div>
             <div className='flex items-center justify-between'>
               <span className='text-xl font-bold text-gray-900'>
-                NOW: £{minPrice.amount} per m²
+                NOW: £{maxPrice.amount} per m²
               </span>
               {hasDiscount && compareAtPrice && (
                 <div className='flex items-center gap-2'>
@@ -308,13 +308,6 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
                 </div>
               )}
             </div>
-            <p className='text-sm text-gray-600'>£{costPerPack.toFixed(2)} per pack</p>
-            {hasDiscount && (
-              <p className='text-xs text-gray-500'>
-                Was: £{originalCostPerPack.toFixed(2)} per pack
-              </p>
-            )}
-            <p className='text-xs text-gray-500'>Each pack contains {packSize.toFixed(2)}m²</p>
           </div>
 
           {/* Calculate and Order Section - Tabbed Interface */}

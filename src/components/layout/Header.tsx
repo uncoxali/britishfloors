@@ -137,7 +137,7 @@ const Header: React.FC = () => {
       </div>
 
       {/* Bottom Section - Blue Navigation Bar */}
-      <nav className='bg-blue-700 shadow-lg fixed top-16 left-0 right-0 z-30'>
+      <nav className='bg-[#1A4685] shadow-lg fixed top-16 left-0 right-0 z-30'>
         <div className='w-full px-4 sm:px-6 lg:px-8'>
           <div className='hidden lg:flex justify-center space-x-8 h-12 items-center'>
             <Link
