@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { CalculationState, OrderState, ProductCalculations } from '@/types/product';
 import { ftToM2, calculateAreaWithWastage, calculatePacksNeeded } from '@/utils/productUtils';
 
-export const useCalculator = (packSize: number, pricePerM2: number) => {
+export const useCalculator = (packSize: number, pricePerM2: number, adminCostPerPack?: number | null) => {
   const [calculationState, setCalculationState] = useState<CalculationState>({
     calcMethod: 'area',
     area: '',
@@ -37,7 +37,9 @@ export const useCalculator = (packSize: number, pricePerM2: number) => {
     const areaWithWastage = calculateAreaWithWastage(areaInM2, calculationState.wastagePercent);
     const packsNeeded = calculatePacksNeeded(areaWithWastage, packSize); // round up
     const totalAreaCovered = packsNeeded * packSize;
-    const pricePerPack = packSize * pricePerM2;
+    
+    // Use admin cost per pack if available, otherwise calculate from price per m2
+    const pricePerPack = adminCostPerPack || (packSize * pricePerM2);
     const totalPriceCalculate = packsNeeded * pricePerPack;
     const totalPriceOrder = orderState.quantity * pricePerPack;
 

@@ -5,6 +5,7 @@ import { ShopifyProduct } from '@/lib/types/shopify';
 import { useCalculator } from '@/hooks/useCalculator';
 import { useProductCart } from '@/hooks/useProductCart';
 import { useAccordion } from '@/hooks/useAccordion';
+import { useInventoryCost } from '@/hooks/useInventoryCost';
 
 import ProductGallery from '@/components/product/ProductGallery';
 import ProductRating from '@/components/product/ProductRating';
@@ -18,6 +19,7 @@ import AccordionItem from '@/components/ui/AccordionItem';
 import ProductAccordionItem from '@/components/ui/ProductAccordionItem';
 import {
   parseRoomSuitabilityData,
+  parseRoomSuitabilityFromTags,
   parseProductDescription,
   getIconPath,
 } from '@/utils/roomSuitabilityUtils';
@@ -62,8 +64,16 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
   const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
   const [isRoomSuitabilityOpen, setIsRoomSuitabilityOpen] = useState(false);
 
+  // Fetch cost per item from Admin API
+  const {
+    costPerItem: adminCostPerItem,
+    currencyCode,
+    isLoading: isCostLoading,
+    error: costError,
+  } = useInventoryCost(product.id);
+
   // Parse dynamic data
-  const roomSuitabilityData = parseRoomSuitabilityData(product.roomSuitability);
+  const roomSuitabilityData = parseRoomSuitabilityFromTags(product.tags);
   const descriptionParagraphs = parseProductDescription(product.description);
 
   // Toggle functions - completely independent behavior
@@ -89,7 +99,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     : 0;
 
   const { calculationState, orderState, calculations, updateCalculationState, updateOrderState } =
-    useCalculator(defaultPackSize, defaultPricePerM2);
+    useCalculator(defaultPackSize, defaultPricePerM2, adminCostPerItem);
 
   const {
     handleAddToCartWithQuantity,
@@ -308,6 +318,25 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
                 </div>
               )}
             </div>
+
+            {/* Cost per item from Admin API */}
+            {(adminCostPerItem || isCostLoading) && (
+              <div className='mt-2'>
+                {isCostLoading ? (
+                  <div className='flex items-center gap-2'>
+                    <div className='w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin'></div>
+                    <span className='text-sm text-gray-500'>Loading inventory cost...</span>
+                  </div>
+                ) : (
+                  <div className='mt-1'>
+                    <span className='text-lg font-semibold text-gray-800'>
+                      {currencyCode === 'GBP' ? '£' : currencyCode || '£'}
+                      {adminCostPerItem?.toFixed(2)} per pack
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Calculate and Order Section - Tabbed Interface */}

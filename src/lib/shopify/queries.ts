@@ -222,28 +222,7 @@ export const GET_PRODUCT_BY_HANDLE = gql`
         value
         type
       }
-      roomSuitability: metafield(namespace: "custom", key: "room_suitability") {
-        namespace
-        key
-        value
-        type
-        reference {
-          ... on Metaobject {
-            id
-            type
-            fields { key value }
-          }
-        }
-        references(first: 10) {
-          nodes {
-            ... on Metaobject {
-              id
-              type
-              fields { key value }
-            }
-          }
-        }
-      }
+      
       metafields(identifiers: [
         {namespace: "custom", key: "dimensions"},
         {namespace: "custom", key: "finish"},
@@ -336,7 +315,18 @@ export const GET_COLLECTION_BY_HANDLE = gql`
             title
             handle
             description
+            tags
             priceRange {
+              minVariantPrice {
+                amount
+                currencyCode
+              }
+              maxVariantPrice {
+                amount
+                currencyCode
+              }
+            }
+            compareAtPriceRange {
               minVariantPrice {
                 amount
                 currencyCode
@@ -366,6 +356,10 @@ export const GET_COLLECTION_BY_HANDLE = gql`
                     amount
                     currencyCode
                   }
+                  compareAtPrice {
+                    amount
+                    currencyCode
+                  }
                   availableForSale
                   selectedOptions {
                     name
@@ -378,6 +372,24 @@ export const GET_COLLECTION_BY_HANDLE = gql`
               id
               name
               values
+            }
+            specifications: metafield(namespace: "custom", key: "product_specifications") {
+              type
+              value
+              reference {
+                ... on Metaobject {
+                  id
+                  fields { key value }
+                }
+              }
+              references(first: 20) {
+                nodes {
+                  ... on Metaobject {
+                    id
+                    fields { key value }
+                  }
+                }
+              }
             }
             dimensions: metafield(namespace: "custom", key: "dimensions") {
               reference {
@@ -403,10 +415,12 @@ export const GET_COLLECTION_BY_HANDLE = gql`
               value
               type
             }
+            
             metafields(identifiers: [
               {namespace: "custom", key: "dimensions"},
               {namespace: "custom", key: "finish"},
               {namespace: "custom", key: "cost_per_item"},
+              {namespace: "custom", key: "room_suitability"},
               {namespace: "product", key: "specifications"},
               {namespace: "specifications", key: "features"}
             ]) {
@@ -710,20 +724,23 @@ export const GET_SIMILAR_PRODUCTS = gql`
             title
             handle
             description
+            tags
             priceRange {
               minVariantPrice {
                 amount
                 currencyCode
               }
-            }
-            compareAtPriceRange {
-              minVariantPrice {
+              maxVariantPrice {
                 amount
                 currencyCode
               }
             }
             compareAtPriceRange {
               minVariantPrice {
+                amount
+                currencyCode
+              }
+              maxVariantPrice {
                 amount
                 currencyCode
               }
@@ -765,6 +782,24 @@ export const GET_SIMILAR_PRODUCTS = gql`
               name
               values
             }
+            dimensions: metafield(namespace: "custom", key: "dimensions") {
+              reference {
+                ... on Metaobject {
+                  id
+                  type
+                  fields { key value }
+                }
+              }
+              references(first: 10) {
+                nodes {
+                  ... on Metaobject {
+                    id
+                    type
+                    fields { key value }
+                  }
+                }
+              }
+            }
             costPerItem: metafield(namespace: "custom", key: "cost_per_item") {
               namespace
               key
@@ -788,8 +823,23 @@ export const GET_PRODUCTS_BY_TAG = gql`
           title
           handle
           description
+          tags
           priceRange {
             minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
+              amount
+              currencyCode
+            }
+          }
+          compareAtPriceRange {
+            minVariantPrice {
+              amount
+              currencyCode
+            }
+            maxVariantPrice {
               amount
               currencyCode
             }
@@ -814,6 +864,10 @@ export const GET_PRODUCTS_BY_TAG = gql`
                   amount
                   currencyCode
                 }
+                compareAtPrice {
+                  amount
+                  currencyCode
+                }
                 availableForSale
                 selectedOptions {
                   name
@@ -826,6 +880,24 @@ export const GET_PRODUCTS_BY_TAG = gql`
             id
             name
             values
+          }
+          dimensions: metafield(namespace: "custom", key: "dimensions") {
+            reference {
+              ... on Metaobject {
+                id
+                type
+                fields { key value }
+              }
+            }
+            references(first: 10) {
+              nodes {
+                ... on Metaobject {
+                  id
+                  type
+                  fields { key value }
+                }
+              }
+            }
           }
           costPerItem: metafield(namespace: "custom", key: "cost_per_item") {
             namespace
