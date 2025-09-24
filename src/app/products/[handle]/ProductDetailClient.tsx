@@ -7,6 +7,7 @@ import { useProductCart } from '@/hooks/useProductCart';
 import { useAccordion } from '@/hooks/useAccordion';
 import { useInventoryCost } from '@/hooks/useInventoryCost';
 import { useCartStore } from '@/store/cart';
+import { useCartDrawerStore } from '@/store/cartDrawer';
 
 import ProductGallery from '@/components/product/ProductGallery';
 import ProductRating from '@/components/product/ProductRating';
@@ -103,7 +104,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     useCalculator(defaultPackSize, defaultPricePerM2, adminCostPerItem);
 
   const {
-    handleAddToCartWithQuantity,
+    handleAddToCartWithQuantity: originalHandleAddToCart,
     handleOrderSample,
     isInCart,
     isAddingToCart,
@@ -113,6 +114,46 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
   // Get sample cart state separately
   const { isProductInCart } = useCartStore();
   const isSampleInCart = isProductInCart(product.id, true);
+
+  // Custom add to cart function that uses calculated pricing
+  const handleAddToCartWithCalculatedPrice = useCallback(async (quantity: number) => {
+    if (isInCart) {
+      const { open: openCart } = useCartDrawerStore.getState();
+      openCart();
+      return;
+    }
+
+    try {
+      const firstVariant = product.variants?.edges[0]?.node;
+      if (firstVariant) {
+        // Calculate the correct price per pack based on admin cost or pack calculation
+        const pricePerPack = adminCostPerItem || (defaultPackSize * defaultPricePerM2);
+        
+        // Create a modified variant with the calculated price
+        const modifiedVariant = {
+          ...firstVariant,
+          price: {
+            amount: pricePerPack.toFixed(2),
+            currencyCode: firstVariant.price.currencyCode || 'GBP'
+          }
+        };
+
+        // Add item with calculated price
+        const { addItem } = useCartStore.getState();
+        addItem(product, modifiedVariant, quantity, false);
+        
+        // Open cart after a short delay
+        setTimeout(() => {
+          const { open: openCart } = useCartDrawerStore.getState();
+          openCart();
+        }, 300);
+      } else {
+        console.error('No variants available for this product');
+      }
+    } catch (error) {
+      console.error('Error adding to cart with calculated price:', error);
+    }
+  }, [isInCart, product, adminCostPerItem, defaultPackSize, defaultPricePerM2]);
 
   // Memoized product data extraction
   const productData = useMemo(() => {
@@ -399,7 +440,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
           {/* Action Buttons */}
           {product.variants?.edges?.length > 0 ? (
             <ActionButtons
-              onAddToCart={handleAddToCartWithQuantity}
+              onAddToCart={handleAddToCartWithCalculatedPrice}
               handleOrderSample={handleOrderSample}
               isInCart={isInCart}
               isSampleInCart={isSampleInCart}

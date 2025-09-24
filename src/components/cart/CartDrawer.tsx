@@ -14,10 +14,24 @@ import ClientOnly from '@/components/ui/ClientOnly';
 
 const CartDrawer: React.FC = () => {
   const { isOpen, close: onClose } = useCartDrawerStore();
-  const { items, removeItem, updateQuantity, clearCart, validateCart } = useCartStore();
+  const { items, removeItem, updateQuantity, clearCart, validateCart, subtotal, total, calculateTotals } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Ensure totals are calculated when drawer opens or when pricing data changes
+  React.useEffect(() => {
+    if (isOpen && items.length > 0) {
+      calculateTotals();
+    }
+  }, [isOpen, items.length, calculateTotals]);
+
+  // Recalculate totals when items change (e.g., when new items are added with calculated prices)
+  React.useEffect(() => {
+    if (items.length > 0) {
+      calculateTotals();
+    }
+  }, [items, calculateTotals]);
 
   // Prevent body scroll when drawer is open
   React.useEffect(() => {
@@ -120,13 +134,26 @@ const CartDrawer: React.FC = () => {
     router.push('/products');
   };
 
-  // Calculate totals manually
-  const subtotal = items.reduce(
-    (sum, item) => sum + parseFloat(item.price.amount) * item.quantity,
-    0,
-  );
-  const tax = subtotal * 0.2; // 20% VAT for UK
-  const total = subtotal + tax;
+  // Calculate totals using store values with fallbacks
+  const subtotalAmount = parseFloat(subtotal?.amount || '0.00');
+  const totalAmount = parseFloat(total?.amount || '0.00');
+  const tax = Math.max(0, totalAmount - subtotalAmount); // Tax is already included in total from store
+  const currencyCode = subtotal?.currencyCode || total?.currencyCode || 'GBP';
+
+  // Debug logging for cart totals
+  React.useEffect(() => {
+    if (isOpen && items.length > 0) {
+      console.log('Cart Debug Info:', {
+        items: items.length,
+        subtotal: subtotal,
+        total: total,
+        subtotalAmount,
+        totalAmount,
+        tax,
+        currencyCode
+      });
+    }
+  }, [isOpen, items, subtotal, total, subtotalAmount, totalAmount, tax, currencyCode]);
 
   return (
     <ClientOnly>
@@ -290,20 +317,20 @@ const CartDrawer: React.FC = () => {
                 <div className='flex justify-between text-sm'>
                   <span className='text-gray-600'>Subtotal</span>
                   <span className='text-gray-900'>
-                    {formatPrice({ amount: subtotal.toString(), currencyCode: 'GBP' })}
+                    {formatPrice({ amount: subtotalAmount.toFixed(2), currencyCode })}
                   </span>
                 </div>
                 <div className='flex justify-between text-sm'>
                   <span className='text-gray-600'>Tax (20% VAT)</span>
                   <span className='text-gray-900'>
-                    {formatPrice({ amount: tax.toString(), currencyCode: 'GBP' })}
+                    {formatPrice({ amount: tax.toFixed(2), currencyCode })}
                   </span>
                 </div>
                 <div className='border-t pt-3'>
                   <div className='flex justify-between text-base font-semibold'>
                     <span className='text-gray-900'>Total</span>
                     <span className='text-gray-900'>
-                      {formatPrice({ amount: total.toString(), currencyCode: 'GBP' })}
+                      {formatPrice({ amount: totalAmount.toFixed(2), currencyCode })}
                     </span>
                   </div>
                 </div>
