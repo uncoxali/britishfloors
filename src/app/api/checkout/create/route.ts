@@ -67,20 +67,20 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Calculate totals
+        // Calculate totals - VAT is already included in UK prices
         const subtotal = items.reduce((sum: number, item: { price: { amount: string }; quantity: number }) => {
             return sum + (parseFloat(item.price.amount) * item.quantity);
         }, 0);
 
         const shipping = subtotal >= 100 ? 0 : 10;
-        const tax = subtotal * 0.20; // 20% VAT for UK
-        const total = subtotal + shipping + tax - (discountAmount || 0);
+        const vatIncluded = subtotal / 1.2 * 0.2; // Calculate VAT portion for display (already included in prices)
+        const total = subtotal + shipping - (discountAmount || 0); // VAT already included in item prices
 
         console.log('Checkout calculation:', {
             itemsCount: items.length,
             subtotal,
             shipping,
-            tax,
+            vatIncluded,
             discountAmount,
             total
         });
@@ -90,39 +90,16 @@ export async function POST(request: NextRequest) {
         const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
         const SHOPIFY_ADMIN_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 
-        // Check if we're in development mode or if Shopify credentials are missing
-        const isDevelopment = process.env.NODE_ENV === 'development';
+        // Check if Shopify credentials are configured
         const hasShopifyCredentials = SHOPIFY_STORE_DOMAIN && SHOPIFY_STOREFRONT_ACCESS_TOKEN &&
             SHOPIFY_STORE_DOMAIN !== 'your-store.myshopify.com' &&
             SHOPIFY_STOREFRONT_ACCESS_TOKEN !== 'your-storefront-access-token';
 
-        console.log('Shopify credentials check:', {
-            isDevelopment,
-            hasShopifyCredentials,
-            storeDomain: SHOPIFY_STORE_DOMAIN,
-            hasToken: !!SHOPIFY_STOREFRONT_ACCESS_TOKEN,
-            hasAdminToken: !!SHOPIFY_ADMIN_ACCESS_TOKEN
-        });
-
-        // Only use mock checkout if Shopify credentials are completely missing
         if (!hasShopifyCredentials) {
-            console.log('No Shopify credentials available, using mock checkout mode');
-
-            // Generate a mock order ID
-            const orderId = `BRF-${Date.now().toString().slice(-8)}`;
-
-            // Create mock checkout response - redirect to cart with success message
-            const mockCheckoutUrl = `/cart?success=true&orderId=${orderId}`;
-
-            return NextResponse.json({
-                checkoutUrl: mockCheckoutUrl,
-                checkoutId: orderId,
-                total: {
-                    amount: total.toFixed(2),
-                    currencyCode: 'GBP'
-                },
-                isMock: true
-            });
+            return NextResponse.json(
+                { error: 'Shopify configuration missing. Please configure Shopify credentials.' },
+                { status: 503 }
+            );
         }
 
         // Create cart using Shopify Storefront API

@@ -75,19 +75,9 @@ export const shopifyApi = {
         try {
             const variables = { first };
             const data = await shopifyClient.request(GET_COLLECTIONS, variables);
-
-            // Filter out mock collections
-            const collectionsResponse = data as ShopifyCollectionsResponse;
-            if (collectionsResponse.collections && collectionsResponse.collections.edges) {
-                collectionsResponse.collections.edges = collectionsResponse.collections.edges.filter((edge: { node: ShopifyCollection }) =>
-                    edge.node.handle !== 'mock-collection'
-                );
-            }
-
-            return collectionsResponse;
+            return data as ShopifyCollectionsResponse;
         } catch (error) {
             console.error('Error fetching collections:', error);
-            // Return a more graceful fallback instead of throwing
             return null;
         }
     },
@@ -98,19 +88,12 @@ export const shopifyApi = {
         first: number = 12,
         after?: string
     ): Promise<{ collection: ShopifyCollection | null }> => {
-        // Check if this is a mock collection
-        if (handle === 'mock-collection') {
-            return { collection: null };
-        }
-
         try {
             const variables = { handle, first, after };
             const data = await shopifyClient.request(GET_COLLECTION_BY_HANDLE, variables) as { collection: ShopifyCollection };
-
             return data as { collection: ShopifyCollection };
         } catch (error) {
             console.error('Error fetching collection:', error);
-            // Return a more graceful fallback
             return { collection: null };
         }
     },
@@ -342,26 +325,10 @@ export const shopifyApi = {
                 console.error('Error searching for similar products:', searchError);
             }
 
-            // Final fallback: get any products
-            try {
-                const fallbackResponse = await shopifyApi.getProducts(limit + 1);
-                // Check if we got a valid response
-                if (fallbackResponse && fallbackResponse.products && fallbackResponse.products.edges) {
-                    return fallbackResponse.products.edges
-                        .map(edge => edge.node)
-                        .filter(p => p.id !== product.id)
-                        .slice(0, limit);
-                }
-            } catch (fallbackError) {
-                console.error('Error fetching fallback products:', fallbackError);
-                return [];
-            }
+            return [];
         } catch (error) {
             console.error('Error fetching similar products:', error);
             return [];
         }
-
-        // Return empty array if all methods failed
-        return [];
     },
 }; 

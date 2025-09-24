@@ -22,35 +22,10 @@ export async function POST(request: NextRequest) {
 
         // Check if Shopify credentials are configured
         if (!SHOPIFY_STORE_DOMAIN || !SHOPIFY_ADMIN_ACCESS_TOKEN) {
-            // Fallback: Create a mock customer for development
-            const mockCustomer = {
-                id: Date.now().toString(),
-                email: email,
-                firstName: firstName,
-                lastName: lastName,
-                phone: phone || '',
-                name: `${firstName} ${lastName}`,
-                createdAt: new Date().toISOString(),
-            };
-
-            // Ensure email field is properly set
-            mockCustomer.email = email;
-
-            const response = {
-                message: 'Customer created successfully (fallback mode)',
-                user: {
-                    id: mockCustomer.id,
-                    email: mockCustomer.email,
-                    firstName: mockCustomer.firstName,
-                    lastName: mockCustomer.lastName,
-                    phone: mockCustomer.phone,
-                    name: mockCustomer.name,
-                    createdAt: mockCustomer.createdAt,
-                },
-                mode: 'fallback',
-            };
-
-            return NextResponse.json(response);
+            return NextResponse.json(
+                { error: 'Shopify configuration missing. Please configure Shopify credentials.' },
+                { status: 503 }
+            );
         }
 
         // Check if customer already exists

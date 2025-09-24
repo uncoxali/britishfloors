@@ -137,8 +137,8 @@ const SearchBar: React.FC = () => {
 
         {/* Search Results Dropdown */}
         {isSearchOpen && (
-          <div className='absolute top-full left-0 right-0 mt-2 z-[9999]'>
-            <div className='bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden'>
+          <div className='absolute top-full left-0 right-0 mt-1 z-[9999]'>
+            <div className='bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden max-w-4xl'>
               {isLoading ? (
                 <div className='p-6 text-center'>
                   <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto'></div>
@@ -151,95 +151,94 @@ const SearchBar: React.FC = () => {
                 </div>
               ) : results.length > 0 ? (
                 <>
-                  <div className='max-h-[400px] overflow-y-auto'>
+                  <div className='max-h-[500px] overflow-y-auto'>
                     {results.map((product, index) => (
                       <div
                         key={product.id}
-                        className={`px-6 py-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 ${
-                          index !== results.length - 1 ? 'border-b border-gray-200' : ''
+                        className={`px-4 py-3 cursor-pointer transition-all duration-200 hover:bg-gray-50 ${
+                          index !== results.length - 1 ? 'border-b border-gray-100' : ''
                         }`}
                         onClick={() => handleProductClick(product)}
                       >
-                        <div className='flex items-center justify-between'>
-                          {/* Left Section: Image + Product Info */}
-                          <div className='flex items-center gap-4 flex-1'>
-                            {/* Product Image */}
-                            <div className='relative flex-shrink-0 group'>
-                              <div className='w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200'>
-                                <Image
-                                  src={product.image}
-                                  alt={product.title}
-                                  width={80}
-                                  height={80}
-                                  className='w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-0'
-                                />
-                                {product.images && product.images.length > 1 && (
-                                  <Image
-                                    src={product.images[1]}
-                                    alt={`${product.title} - Image 2`}
-                                    width={80}
-                                    height={80}
-                                    className='absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100'
-                                  />
-                                )}
+                        <div className='flex items-center gap-4'>
+                          {/* Product Image with Sale Badge */}
+                          <div className='relative flex-shrink-0'>
+                            <div className='w-[120px] h-[90px] bg-gray-100 rounded-lg overflow-hidden border border-gray-200'>
+                              <Image
+                                src={product.image}
+                                alt={product.title}
+                                width={120}
+                                height={90}
+                                className='w-full h-full object-cover'
+                              />
+                            </div>
+                            {/* Sale Badge */}
+                            {product.discount && (
+                              <div className='absolute top-1 left-1 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded text-[11px]'>
+                                Sale
                               </div>
-                              {/* Sale Badge */}
-                              {product.discount && (
-                                <div className='absolute -top-1 -left-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded'>
-                                  Sale
-                                </div>
+                            )}
+                          </div>
+
+                          {/* Product Info */}
+                          <div className='flex-1 min-w-0'>
+                            {/* Product Title */}
+                            <h4 className='text-lg font-semibold text-blue-800 mb-2 hover:underline cursor-pointer leading-tight truncate'>
+                              {product.title}
+                            </h4>
+
+                            {/* Specifications Row */}
+                            <div className='flex items-center gap-3 text-sm text-gray-600 mb-3'>
+                              {product.width && (
+                                <span className='font-medium'>W:{product.width}</span>
+                              )}
+                              {product.thickness && (
+                                <span className='font-medium'>T:{product.thickness}</span>
+                              )}
+                              {product.length && (
+                                <span className='font-medium'>L:{product.length}</span>
+                              )}
+                              {!product.width && !product.thickness && !product.length && (
+                                <span className='text-xs text-gray-500'>
+                                  Contact for specifications
+                                </span>
                               )}
                             </div>
 
-                            {/* Product Info */}
-                            <div className='flex-1 min-w-0'>
-                              {/* Product Title */}
-                              <h4 className='text-lg font-medium text-blue-700 mb-1 hover:underline cursor-pointer line-clamp-1'>
-                                {product.title}
-                              </h4>
-
-                              {/* Specifications Row */}
-                              <div className='flex items-center gap-4 text-sm text-gray-600 mb-2'>
-                                <span className='font-medium'>W:100mm</span>
-                                <span className='font-medium'>T:12mm</span>
-                                <span className='font-medium'>L:600mm</span>
-                              </div>
-
-                              {/* Price Row */}
-                              <div className='flex items-center gap-3'>
-                                {product.originalPrice && (
-                                  <span className='text-sm text-gray-500 line-through'>
-                                    £{product.originalPrice} m²
-                                  </span>
-                                )}
-                                {product.discount && (
-                                  <span className='text-xs bg-red-600 text-white px-2 py-1 rounded font-bold'>
-                                    -{product.discount}%
-                                  </span>
-                                )}
-                                <div className='text-xl font-bold text-gray-900'>
-                                  £{product.price}{' '}
-                                  <span className='text-sm font-normal text-gray-600'>m²</span>
-                                </div>
+                            {/* Price Row */}
+                            <div className='flex items-center gap-2'>
+                              {product.originalPrice && (
+                                <span className='text-sm text-gray-500 line-through'>
+                                  £{product.originalPrice.toFixed(2)} m²
+                                </span>
+                              )}
+                              {product.discount && (
+                                <span className='text-sm bg-red-600 text-white px-2 py-1 rounded font-bold'>
+                                  -{product.discount}%
+                                </span>
+                              )}
+                              <div className='text-xl font-bold text-gray-900'>
+                                £{product.price.toFixed(2)}{' '}
+                                <span className='text-base font-normal text-gray-600'>m²</span>
                               </div>
                             </div>
                           </div>
 
-                          {/* Right Section: Order Sample Button */}
-                          <div className='flex-shrink-0 ml-6'>
+                          {/* Order Sample Button */}
+                          <div className='flex-shrink-0'>
                             <button
                               onClick={(e) => handleOrderSample(e, product)}
                               disabled={isAddingSample === product.id}
-                              className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border ${
+                              className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-200 border min-w-[140px] ${
                                 isAddingSample === product.id
                                   ? 'bg-gray-400 text-white cursor-not-allowed border-gray-400'
                                   : isProductInCart(product.id, true)
                                   ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
+                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400 shadow-sm'
                               }`}
                             >
                               {isAddingSample === product.id ? (
-                                <span className='flex items-center gap-2'>
+                                <span className='flex items-center justify-center gap-2'>
                                   <svg
                                     className='w-4 h-4 animate-spin'
                                     fill='none'
@@ -262,7 +261,7 @@ const SearchBar: React.FC = () => {
                                   Adding...
                                 </span>
                               ) : isProductInCart(product.id, true) ? (
-                                <span className='flex items-center gap-2'>
+                                <span className='flex items-center justify-center gap-2'>
                                   <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
                                     <path
                                       fillRule='evenodd'

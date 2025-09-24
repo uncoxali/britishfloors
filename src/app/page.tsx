@@ -1,15 +1,17 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
 
 import { shopifyApi } from '@/lib/shopify/api';
-import { ShopifyProduct, ShopifyArticle } from '@/lib/types/shopify';
+import { ShopifyProduct, ShopifyArticle, ShopifyCollection } from '@/lib/types/shopify';
 import ProductCard from '@/components/product/ProductCard';
 import BlogsSection from '@/components/blog/BlogsSection';
 
 export default async function HomePage() {
   let products: ShopifyProduct[] = [];
   let articles: ShopifyArticle[] = [];
+  let collections: ShopifyCollection[] = [];
 
   try {
     const response = await shopifyApi.getProducts(8);
@@ -21,8 +23,21 @@ export default async function HomePage() {
   }
 
   try {
+    const collectionsResponse = await shopifyApi.getCollections(6);
+    if (
+      collectionsResponse &&
+      collectionsResponse.collections &&
+      collectionsResponse.collections.edges
+    ) {
+      collections = collectionsResponse.collections.edges.map((edge) => edge.node);
+    }
+  } catch (err) {
+    console.error('Error loading collections:', err);
+  }
+
+  try {
     const articlesResponse = await shopifyApi.getArticlesWithContent(5);
-    articles = articlesResponse.articles.edges.map((edge) => edge.node);
+    articles = articlesResponse.articles.edges.map((edge) => edge.node).slice(0, 5);
   } catch (err) {
     console.error('Error loading articles:', err);
     // Keep articles as empty array, fallback will be used in BlogsSection
@@ -49,35 +64,40 @@ export default async function HomePage() {
           </div>
 
           {/* Categories Grid */}
-          <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-16'>
-            {[
-              { name: 'Luxury Vinyl', image: '/images/sample-product.png' },
-              { name: 'Engineered Wood', image: '/images/sample-product.png' },
-              { name: 'Laminate', image: '/images/sample-product.png' },
-              { name: 'Parquet', image: '/images/sample-product.png' },
-              { name: 'Carpet', image: '/images/sample-product.png' },
-              { name: 'Accessories', image: '/images/sample-product.png' },
-            ].map((category) => (
-              <div key={category.name} className='group cursor-pointer'>
-                <div className='relative overflow-hidden rounded-2xl ring-1 ring-transparent group-hover:ring-purple-500 transition-all duration-300 shadow-sm group-hover:shadow-md'>
-                  <Image
-                    src={category.image}
-                    alt={category.name}
-                    width={200}
-                    height={240}
-                    className='object-cover w-full h-full group-hover:scale-105 transition-transform duration-300'
-                  />
-                  <div className='pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
-                    <div className='absolute inset-0 bg-gradient-to-t from-white/95 via-white/70 to-transparent' />
-                  </div>
-                  <div className='absolute left-3 bottom-3'>
-                    <span className='text-blue-900 font-bold text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
-                      {category.name}
-                    </span>
-                  </div>
+          <div className='flex justify-center'>
+            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-16 mx-auto'>
+              {collections.length > 0 ? (
+                collections.slice(0, 5).map((collection) => (
+                  <Link
+                    key={collection.id}
+                    href={`/products?category=${collection.title.toLowerCase().replace(/ /g, '-')}`}
+                    className='group cursor-pointer'
+                  >
+                    <div className='relative overflow-hidden rounded-2xl ring-1 ring-transparent group-hover:ring-purple-500 transition-all duration-300 shadow-sm group-hover:shadow-md h-48 lg:h-80'>
+                      <Image
+                        src={collection.image?.url || '/images/sample-product.png'}
+                        alt={collection.title}
+                        width={280}
+                        height={320}
+                        className='object-cover w-full h-full group-hover:scale-105 transition-transform duration-300'
+                      />
+                      <div className='pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                        <div className='absolute inset-0 bg-gradient-to-t from-white/95 via-white/70 to-transparent' />
+                      </div>
+                      <div className='absolute left-3 bottom-3'>
+                        <span className='text-blue-900 font-bold text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                          {collection.title}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className='col-span-full text-center py-8'>
+                  <p className='text-gray-500'>Loading collections...</p>
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
 
           {/* Special Offers Section */}
@@ -281,8 +301,6 @@ export default async function HomePage() {
 
       {/* Blogs Section */}
       <BlogsSection articles={articles} showFullContent={true} />
-
-      {/* Special Offers Section */}
     </Layout>
   );
 }

@@ -214,8 +214,8 @@ export const useCartStore = create<CartStore>()(
 
                 const { discountAmount } = get();
                 const subtotalWithDiscount = parseFloat(subtotalAmount) - discountAmount;
-                const tax = subtotalWithDiscount * 0.20; // 20% VAT for UK
-                const totalAmount = subtotalWithDiscount + tax;
+                // VAT is already included in UK prices - calculate breakdown for display
+                const totalAmount = subtotalWithDiscount; // Total equals subtotal since VAT is already included
 
                 set({
                     totalQuantity,
@@ -224,9 +224,10 @@ export const useCartStore = create<CartStore>()(
                 });
 
                 // Return the calculated values
+                const vatIncluded = totalAmount / 1.2 * 0.2; // Calculate VAT portion for display
                 return {
                     subtotal: parseFloat(subtotalAmount),
-                    tax: tax,
+                    vatIncluded: vatIncluded,
                     total: totalAmount,
                 };
             },

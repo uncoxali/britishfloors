@@ -28,18 +28,18 @@ const BlogsSection: React.FC<BlogsSectionProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const response = await shopifyApi.getArticlesWithContent(maxArticles);
-      const fetchedArticles = response.articles.edges.map((edge) => edge.node);
+      const response = await shopifyApi.getArticlesWithContent(5);
+      const fetchedArticles = response.articles.edges.map((edge) => edge.node).slice(0, 5);
       setArticles(fetchedArticles);
     } catch (err) {
       console.error('Error fetching articles:', err);
       setError('Failed to load blog articles');
       // Keep fallback data if API fails
-      setArticles(getFallbackArticles());
+      setArticles(getFallbackArticles().slice(0, 5));
     } finally {
       setLoading(false);
     }
-  }, [maxArticles]);
+  }, []);
 
   useEffect(() => {
     if (fetchFromAPI && initialArticles.length === 0) {
@@ -165,7 +165,8 @@ const BlogsSection: React.FC<BlogsSectionProps> = ({
     );
   }
 
-  const displayArticles = articles.length > 0 ? articles : getFallbackArticles();
+  const displayArticles =
+    articles.length > 0 ? articles.slice(0, 5) : getFallbackArticles().slice(0, 5);
 
   return (
     <section className={`py-5 ${className}`}>
@@ -179,13 +180,7 @@ const BlogsSection: React.FC<BlogsSectionProps> = ({
           )}
         </div>
 
-        <div
-          className={`grid gap-6 ${
-            showFullContent
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-5'
-          }`}
-        >
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6'>
           {displayArticles.map((article) => (
             <BlogCard key={article.id} article={article} showFullContent={showFullContent} />
           ))}

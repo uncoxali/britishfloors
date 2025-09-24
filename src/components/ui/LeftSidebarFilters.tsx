@@ -10,8 +10,8 @@ interface LeftSidebarFiltersProps {
 }
 
 const LeftSidebarFilters: React.FC<LeftSidebarFiltersProps> = ({
-  categories = ['Laminate', 'Vinyl (LVT)', 'Engineered Wood', 'Parquet', 'Carpet', 'Tile'],
-  brands = ['Shaw', 'Mohawk', 'Armstrong', 'Mannington', 'Tarkett', 'Quick-Step', 'Pergo'],
+  categories = [],
+  brands = [],
   totalResults = 0,
 }) => {
   const router = useRouter();

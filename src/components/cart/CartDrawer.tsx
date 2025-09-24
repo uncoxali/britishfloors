@@ -146,7 +146,7 @@ const CartDrawer: React.FC = () => {
   // Calculate totals using store values with fallbacks
   const subtotalAmount = parseFloat(subtotal?.amount || '0.00');
   const totalAmount = parseFloat(total?.amount || '0.00');
-  const tax = Math.max(0, totalAmount - subtotalAmount); // Tax is already included in total from store
+  const vatIncluded = (subtotalAmount / 1.2) * 0.2; // Calculate VAT portion for display (already included in prices)
   const currencyCode = subtotal?.currencyCode || total?.currencyCode || 'GBP';
 
   // Debug logging for cart totals
@@ -158,11 +158,11 @@ const CartDrawer: React.FC = () => {
         total: total,
         subtotalAmount,
         totalAmount,
-        tax,
+        vatIncluded,
         currencyCode,
       });
     }
-  }, [isOpen, items, subtotal, total, subtotalAmount, totalAmount, tax, currencyCode]);
+  }, [isOpen, items, subtotal, total, subtotalAmount, totalAmount, vatIncluded, currencyCode]);
 
   return (
     <ClientOnly>
@@ -330,9 +330,9 @@ const CartDrawer: React.FC = () => {
                   </span>
                 </div>
                 <div className='flex justify-between text-sm'>
-                  <span className='text-gray-600'>Tax (20% VAT)</span>
+                  <span className='text-gray-600'>VAT included (20%)</span>
                   <span className='text-gray-900'>
-                    {formatPrice({ amount: tax.toFixed(2), currencyCode })}
+                    {formatPrice({ amount: vatIncluded.toFixed(2), currencyCode })}
                   </span>
                 </div>
                 <div className='border-t pt-3'>

@@ -47,13 +47,13 @@ const CartContent: React.FC = () => {
     }
   }, [searchParams, clearCart]);
 
-  // Calculate totals
+  // Calculate totals - VAT is already included in UK prices
   const subtotal = items.reduce(
     (sum, item) => sum + parseFloat(item.price.amount) * item.quantity,
     0,
   );
-  const tax = subtotal * 0.2; // 20% VAT for UK
-  const total = subtotal + tax - (discountAmount || 0);
+  const vatIncluded = (subtotal / 1.2) * 0.2; // Calculate VAT portion for display (prices include VAT)
+  const total = subtotal - (discountAmount || 0); // Total equals subtotal since VAT is already included
 
   const handleCheckout = async () => {
     if (!isAuthenticated || !user) {
@@ -375,9 +375,9 @@ const CartContent: React.FC = () => {
                   </span>
                 </div>
                 <div className='flex justify-between text-sm'>
-                  <span className='text-gray-600'>Tax (20% VAT)</span>
+                  <span className='text-gray-600'>VAT included (20%)</span>
                   <span className='text-gray-900'>
-                    {formatPrice({ amount: tax.toString(), currencyCode: 'GBP' })}
+                    {formatPrice({ amount: vatIncluded.toString(), currencyCode: 'GBP' })}
                   </span>
                 </div>
                 {discountCode && discountAmount > 0 && (
