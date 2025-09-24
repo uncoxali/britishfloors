@@ -14,7 +14,16 @@ import ClientOnly from '@/components/ui/ClientOnly';
 
 const CartDrawer: React.FC = () => {
   const { isOpen, close: onClose } = useCartDrawerStore();
-  const { items, removeItem, updateQuantity, clearCart, validateCart, subtotal, total, calculateTotals } = useCartStore();
+  const {
+    items,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    validateCart,
+    subtotal,
+    total,
+    calculateTotals,
+  } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -150,7 +159,7 @@ const CartDrawer: React.FC = () => {
         subtotalAmount,
         totalAmount,
         tax,
-        currencyCode
+        currencyCode,
       });
     }
   }, [isOpen, items, subtotal, total, subtotalAmount, totalAmount, tax, currencyCode]);
