@@ -66,8 +66,8 @@ const SearchBar: React.FC = () => {
   const handleOrderSample = async (e: React.MouseEvent, product: SearchProduct) => {
     e.stopPropagation();
 
-    // Check if product is already in cart
-    if (isProductInCart(product.id)) {
+    // Check if sample is already in cart
+    if (isProductInCart(product.id, true)) {
       openCart();
       return;
     }
@@ -83,7 +83,7 @@ const SearchBar: React.FC = () => {
         // Add sample to cart (using first variant)
         const firstVariant = fullProduct.variants?.edges[0]?.node;
         if (firstVariant) {
-          addItem(fullProduct, firstVariant, 1);
+          addItem(fullProduct, firstVariant, 1, true); // Pass true for isSample
           // Open cart drawer after adding sample
           openCart();
         }
@@ -233,7 +233,7 @@ const SearchBar: React.FC = () => {
                               className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200 border ${
                                 isAddingSample === product.id
                                   ? 'bg-gray-400 text-white cursor-not-allowed border-gray-400'
-                                  : isProductInCart(product.id)
+                                  : isProductInCart(product.id, true)
                                   ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-gray-400'
                               }`}
@@ -261,7 +261,7 @@ const SearchBar: React.FC = () => {
                                   </svg>
                                   Adding...
                                 </span>
-                              ) : isProductInCart(product.id) ? (
+                              ) : isProductInCart(product.id, true) ? (
                                 <span className='flex items-center gap-2'>
                                   <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
                                     <path
@@ -270,7 +270,7 @@ const SearchBar: React.FC = () => {
                                       clipRule='evenodd'
                                     />
                                   </svg>
-                                  In Basket
+                                  Sample in Basket
                                 </span>
                               ) : (
                                 'Order Sample'

@@ -87,16 +87,10 @@ const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
 }) => {
   let specificationsData: { label: string; value: string }[] = [];
 
-  // Debug logging
-  console.log('ProductSpecifications props:', { metafields, specifications });
-
   // If specifications object is provided (from metaobject), use that data
   if (specifications) {
-    console.log('Processing specifications');
-
     // Handle the reference structure directly (single object)
     if (specifications.reference && specifications.reference.fields) {
-      console.log('Processing reference structure');
       const dimensionData = specifications.reference;
 
       specificationsData = dimensionData.fields
@@ -133,7 +127,6 @@ const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
 
   // Fallback to metafields if no specifications data
   if (specificationsData.length === 0 && metafields && metafields.length > 0) {
-    console.log('Processing metafields as fallback');
     const specMetafields = metafields.filter(
       (metafield) =>
         metafield &&
@@ -154,8 +147,6 @@ const ProductSpecifications: React.FC<ProductSpecificationsProps> = ({
         }));
     }
   }
-
-  console.log('Specifications data to render:', specificationsData);
 
   // Reorder specifications to put "Pack Size" last
   if (specificationsData.length > 0) {

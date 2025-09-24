@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ActionButtonsProps {
   onAddToCart: (quantity: number) => Promise<void>;
   handleOrderSample: () => Promise<void>;
   isInCart: boolean;
+  isSampleInCart: boolean;
   isAddingToCart: boolean;
   isOrderingSample: boolean;
   quantity: number;
@@ -13,10 +14,17 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   onAddToCart,
   handleOrderSample,
   isInCart,
+  isSampleInCart,
   isAddingToCart,
   isOrderingSample,
   quantity,
 }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleAddClick = () => {
     onAddToCart(quantity);
   };
@@ -30,7 +38,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           className={`flex items-center justify-center gap-2 font-medium py-3 px-4 rounded-lg transition-colors ${
             isAddingToCart
               ? 'bg-gray-400 cursor-not-allowed text-white'
-              : isInCart
+              : mounted && isInCart
               ? 'bg-green-600 hover:bg-green-700 text-white'
               : 'bg-amber-600 hover:bg-amber-700 text-white'
           }`}
@@ -54,7 +62,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               </svg>
               Adding...
             </>
-          ) : isInCart ? (
+          ) : mounted && isInCart ? (
             <>
               <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
                 <path
@@ -80,7 +88,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           className={`flex items-center justify-center gap-2 font-medium py-3 px-4 rounded-lg transition-colors ${
             isOrderingSample
               ? 'bg-gray-400 cursor-not-allowed text-white border border-gray-400'
-              : isInCart
+              : isSampleInCart
               ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
               : 'border border-amber-600 text-amber-600 hover:bg-amber-50'
           }`}
@@ -104,7 +112,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               </svg>
               Adding...
             </>
-          ) : isInCart ? (
+          ) : isSampleInCart ? (
             <>
               <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
                 <path
@@ -113,7 +121,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                   clipRule='evenodd'
                 />
               </svg>
-              View basket
+              Sample in basket
             </>
           ) : (
             'Order sample'

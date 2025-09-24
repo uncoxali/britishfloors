@@ -32,7 +32,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     setMounted(true);
   }, []);
 
-  const isInCart = mounted ? isProductInCart(product.id) : false;
+  const isInCart = mounted ? isProductInCart(product.id, false) : false; // Regular product
+  const isSampleInCart = mounted ? isProductInCart(product.id, true) : false; // Sample
 
   // Calculate discount - more realistic discount logic
   const simulatedOriginalPrice = Math.round(price * 1.4);
@@ -96,7 +97,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
       return;
     }
 
-    if (isInCart) {
+    if (isSampleInCart) {
       openCart();
     } else {
       setIsLoading(true);
@@ -104,7 +105,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         // Add sample to cart (using first variant)
         const firstVariant = product.variants?.edges[0]?.node;
         if (firstVariant) {
-          addItem(product, firstVariant, 1);
+          addItem(product, firstVariant, 1, true); // Pass true for isSample
           // Open cart drawer after adding sample
           openCart();
         }
@@ -190,7 +191,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               className={`py-1.5 px-2.5 xl:py-2 xl:px-3 rounded-lg text-xs font-bold transition-colors ${
                 isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : isInCart
+                  : isSampleInCart
                   ? 'bg-green-600 text-white hover:bg-green-700'
                   : 'bg-blue-900 text-white hover:bg-blue-800'
               }`}
@@ -216,7 +217,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   </svg>
                   <span className='hidden sm:inline'>Adding...</span>
                 </span>
-              ) : isInCart ? (
+              ) : isSampleInCart ? (
                 <span className='flex items-center gap-1'>
                   <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
                     <path

@@ -10,7 +10,8 @@ export const useProductCart = (product: ShopifyProduct) => {
 
   const { addItem, isProductInCart } = useCartStore();
   const { open: openCart } = useCartDrawerStore();
-  const isInCart = isProductInCart(product.id);
+  const isInCart = isProductInCart(product.id, false); // Regular product
+  const isSampleInCart = isProductInCart(product.id, true); // Sample
 
   const handleAddToCart = async (quantity: number) => {
     if (isInCart) {
@@ -22,7 +23,7 @@ export const useProductCart = (product: ShopifyProduct) => {
     try {
       const firstVariant = product.variants?.edges[0]?.node;
       if (firstVariant) {
-        addItem(product, firstVariant, quantity);
+        addItem(product, firstVariant, quantity, false); // Regular product
         setTimeout(() => {
           openCart();
         }, 300);
@@ -39,7 +40,7 @@ export const useProductCart = (product: ShopifyProduct) => {
   };
 
   const handleOrderSample = async () => {
-    if (isInCart) {
+    if (isSampleInCart) {
       openCart();
       return;
     }
@@ -48,7 +49,7 @@ export const useProductCart = (product: ShopifyProduct) => {
     try {
       const firstVariant = product.variants?.edges[0]?.node;
       if (firstVariant) {
-        addItem(product, firstVariant, 1);
+        addItem(product, firstVariant, 1, true); // Sample product
         setTimeout(() => {
           openCart();
         }, 300);
@@ -68,6 +69,7 @@ export const useProductCart = (product: ShopifyProduct) => {
     handleAddToCart: () => handleAddToCart(1),
     handleOrderSample,
     isInCart,
+    isSampleInCart,
     isAddingToCart,
     isOrderingSample,
   };

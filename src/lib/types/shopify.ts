@@ -240,6 +240,8 @@ export interface CartItem {
     quantity: number;
     image?: ShopifyImage;
     availableForSale: boolean;
+    isSample?: boolean;
+    type?: 'main' | 'sample';
 }
 
 export interface Cart {

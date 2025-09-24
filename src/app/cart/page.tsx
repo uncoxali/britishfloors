@@ -273,39 +273,67 @@ const CartContent: React.FC = () => {
                     {/* Product Details */}
                     <div className='flex-1 min-w-0'>
                       <h3 className='text-lg font-medium text-gray-900'>{item.title}</h3>
-                      {item.variantTitle && (
-                        <p className='text-sm text-gray-500 mt-1'>{item.variantTitle}</p>
+                      {item.type === 'sample' ? (
+                        <div className='mt-1'>
+                          <span className='inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full'>
+                            Sample Order
+                          </span>
+                        </div>
+                      ) : item.type === 'main' ? (
+                        <div className='mt-1'>
+                          <span className='inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full'>
+                            Main Product
+                          </span>
+                        </div>
+                      ) : (
+                        item.variantTitle && (
+                          <p className='text-sm text-gray-500 mt-1'>{item.variantTitle}</p>
+                        )
                       )}
                       <p className='text-lg font-medium text-gray-900 mt-2'>
                         {formatPrice({
                           amount: (parseFloat(item.price.amount) * item.quantity).toString(),
                           currencyCode: item.price.currencyCode,
                         })}
+                        {item.type === 'sample' && (
+                          <span className='text-sm text-blue-600 ml-1'>(min price)</span>
+                        )}
+                        {item.type === 'main' && (
+                          <span className='text-sm text-green-600 ml-1'>(main)</span>
+                        )}
                       </p>
                     </div>
 
                     {/* Quantity Controls */}
-                    <div className='flex items-center space-x-2'>
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.variantId, Math.max(0, item.quantity - 1))
-                        }
-                        className='w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50'
-                      >
-                        -
-                      </button>
-                      <span className='w-12 text-center text-gray-900'>{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                        className='w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50'
-                      >
-                        +
-                      </button>
-                    </div>
+                    {!item.isSample && (
+                      <div className='flex items-center space-x-2'>
+                        <button
+                          onClick={() =>
+                            updateQuantity(
+                              item.variantId,
+                              Math.max(0, item.quantity - 1),
+                              item.isSample,
+                            )
+                          }
+                          className='w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50'
+                        >
+                          -
+                        </button>
+                        <span className='w-12 text-center text-gray-900'>{item.quantity}</span>
+                        <button
+                          onClick={() =>
+                            updateQuantity(item.variantId, item.quantity + 1, item.isSample)
+                          }
+                          className='w-8 h-8 flex items-center justify-center border border-gray-300 rounded-md text-gray-600 hover:bg-gray-50'
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
 
                     {/* Remove Button */}
                     <button
-                      onClick={() => removeItem(item.variantId)}
+                      onClick={() => removeItem(item.variantId, item.isSample)}
                       className='text-red-600 hover:text-red-700 p-2'
                     >
                       <svg

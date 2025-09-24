@@ -37,7 +37,7 @@ export const useCalculator = (packSize: number, pricePerM2: number, adminCostPer
     const areaWithWastage = calculateAreaWithWastage(areaInM2, calculationState.wastagePercent);
     const packsNeeded = calculatePacksNeeded(areaWithWastage, packSize); // round up
     const totalAreaCovered = packsNeeded * packSize;
-    
+
     // Use admin cost per pack if available, otherwise calculate from price per m2
     const pricePerPack = adminCostPerPack || (packSize * pricePerM2);
     const totalPriceCalculate = packsNeeded * pricePerPack;

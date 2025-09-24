@@ -31,6 +31,7 @@ export interface CartActions {
   handleAddToCart: () => Promise<void>;
   handleOrderSample: () => Promise<void>;
   isInCart: boolean;
+  isSampleInCart: boolean;
   isAddingToCart: boolean;
   isOrderingSample: boolean;
 }

@@ -6,6 +6,7 @@ import { useCalculator } from '@/hooks/useCalculator';
 import { useProductCart } from '@/hooks/useProductCart';
 import { useAccordion } from '@/hooks/useAccordion';
 import { useInventoryCost } from '@/hooks/useInventoryCost';
+import { useCartStore } from '@/store/cart';
 
 import ProductGallery from '@/components/product/ProductGallery';
 import ProductRating from '@/components/product/ProductRating';
@@ -108,6 +109,10 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     isAddingToCart,
     isOrderingSample,
   } = useProductCart(product);
+
+  // Get sample cart state separately
+  const { isProductInCart } = useCartStore();
+  const isSampleInCart = isProductInCart(product.id, true);
 
   // Memoized product data extraction
   const productData = useMemo(() => {
@@ -255,10 +260,10 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
         ];
 
   return (
-    <div className='w-full px-4 py-6'>
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12'>
+    <div className='w-full px-4 sm:px-6 lg:px-8 py-6'>
+      <div className='grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 lg:gap-12'>
         {/* Left: Gallery */}
-        <div>
+        <div className='w-full'>
           <ProductGallery
             images={galleryImages}
             activeIndex={activeIndex}
@@ -268,7 +273,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
         </div>
 
         {/* Right: Details */}
-        <div className='flex flex-col justify-start space-y-4'>
+        <div className='flex flex-col justify-start space-y-4 w-full'>
           {/* Breadcrumb */}
           <div className='text-sm text-gray-500'>
             <span>Home</span> <span>/</span> <span>Shop</span>
@@ -284,7 +289,9 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
           <ProductRating />
 
           {/* Title */}
-          <h1 className='text-3xl font-bold text-[#1e3a8a]'>{product.title || 'Product Title'}</h1>
+          <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold text-[#1e3a8a] break-words'>
+            {product.title || 'Product Title'}
+          </h1>
 
           {/* Description */}
           {product.description && (
@@ -305,14 +312,16 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
 
           {/* Price */}
           <div>
-            <div className='flex items-center justify-between'>
-              <span className='text-xl font-bold text-gray-900'>
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'>
+              <span className='text-lg sm:text-xl font-bold text-gray-900'>
                 NOW: £{maxPrice.amount} per m²
               </span>
               {hasDiscount && compareAtPrice && (
                 <div className='flex items-center gap-2'>
-                  <span className='text-red-600 font-medium'>Was: £{compareAtPrice.amount}</span>
-                  <span className='bg-red-600 text-white text-xs px-2 py-1 rounded-full'>
+                  <span className='text-red-600 font-medium text-sm sm:text-base'>
+                    Was: £{compareAtPrice.amount}
+                  </span>
+                  <span className='bg-red-600 text-white text-xs px-2 py-1 rounded-full whitespace-nowrap'>
                     -{discountPercentage}%
                   </span>
                 </div>
@@ -342,10 +351,10 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
           {/* Calculate and Order Section - Tabbed Interface */}
           <div className='space-y-0'>
             {/* Tab Navigation */}
-            <div className='flex gap-2 mb-0'>
+            <div className='flex gap-1 sm:gap-2 mb-0'>
               <button
                 onClick={() => setActiveTab('calculate')}
-                className={`flex-1 py-3 px-6 text-center font-medium rounded-t-lg transition-colors ${
+                className={`flex-1 py-2 sm:py-3 px-2 sm:px-6 text-center font-medium rounded-t-lg transition-colors text-sm sm:text-base ${
                   activeTab === 'calculate'
                     ? 'text-amber-700'
                     : 'bg-transparent border border-amber-600 text-amber-700 hover:bg-amber-50 mb-1'
@@ -356,7 +365,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
               </button>
               <button
                 onClick={() => setActiveTab('order')}
-                className={`flex-1 py-3 px-6 text-center font-medium rounded-t-lg transition-colors ${
+                className={`flex-1 py-2 sm:py-3 px-2 sm:px-6 text-center font-medium rounded-t-lg transition-colors text-sm sm:text-base ${
                   activeTab === 'order'
                     ? 'text-amber-700'
                     : 'bg-transparent border border-amber-600 text-amber-700 hover:bg-amber-50 mb-1'
@@ -393,6 +402,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
               onAddToCart={handleAddToCartWithQuantity}
               handleOrderSample={handleOrderSample}
               isInCart={isInCart}
+              isSampleInCart={isSampleInCart}
               isAddingToCart={isAddingToCart}
               isOrderingSample={isOrderingSample}
               quantity={getQuantityForCart()}
@@ -409,7 +419,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
       </div>
 
       {/* Lower Section - Product Info & Accordions */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mt-8 sm:mt-12'>
         {/* Left - Product Specifications */}
         <ProductSpecificationsDetails product={product} />
 
@@ -462,7 +472,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
                   return deliveryDates.map((dateStr, index) => (
                     <button
                       key={index}
-                      className='p-2 border border-blue-200 rounded-lg text-sm hover:bg-blue-50 transition-colors'
+                      className='p-2 border border-blue-200 rounded-lg text-xs sm:text-sm hover:bg-blue-50 transition-colors'
                     >
                       {dateStr}
                     </button>
@@ -546,7 +556,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
       </div>
 
       {/* Product Details Accordions - Below Product Specifications */}
-      <div className='mt-8 space-y-4'>
+      <div className='mt-6 sm:mt-8 space-y-4'>
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
           {/* Description Accordion */}
           <div key='description-accordion'>
@@ -575,47 +585,51 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
               variant='golden'
             >
               <div className='space-y-4'>
-                {/* Room Icons - First Row (4 items) */}
+                {/* Room Icons - Responsive Grid */}
                 {roomSuitabilityData.rooms.length > 0 && (
-                  <div className='grid grid-cols-4 gap-3'>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3'>
                     {roomSuitabilityData.rooms.map((room) => (
                       <div
                         key={room.id}
-                        className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg'
+                        className='flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg'
                       >
-                        <div className='w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center'>
+                        <div className='w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0'>
                           <svg
-                            className='w-5 h-5 text-amber-600'
+                            className='w-4 h-4 sm:w-5 sm:h-5 text-amber-600'
                             fill='currentColor'
                             viewBox='0 0 24 24'
                           >
                             <path d={getIconPath(room.icon)} />
                           </svg>
                         </div>
-                        <span className='text-sm font-medium text-gray-700'>{room.name}</span>
+                        <span className='text-xs sm:text-sm font-medium text-gray-700 truncate'>
+                          {room.name}
+                        </span>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Additional Features - Second Row (2 items) */}
+                {/* Additional Features - Responsive Grid */}
                 {roomSuitabilityData.features.length > 0 && (
-                  <div className='grid grid-cols-2 gap-3'>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                     {roomSuitabilityData.features.map((feature) => (
                       <div
                         key={feature.id}
-                        className='flex items-center gap-3 p-3 bg-gray-50 rounded-lg'
+                        className='flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg'
                       >
-                        <div className='w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center'>
+                        <div className='w-6 h-6 sm:w-8 sm:h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0'>
                           <svg
-                            className='w-5 h-5 text-amber-600'
+                            className='w-4 h-4 sm:w-5 sm:h-5 text-amber-600'
                             fill='currentColor'
                             viewBox='0 0 24 24'
                           >
                             <path d={getIconPath(feature.icon)} />
                           </svg>
                         </div>
-                        <span className='text-sm font-medium text-gray-700'>{feature.name}</span>
+                        <span className='text-xs sm:text-sm font-medium text-gray-700'>
+                          {feature.name}
+                        </span>
                       </div>
                     ))}
                   </div>

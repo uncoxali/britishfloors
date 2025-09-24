@@ -210,27 +210,51 @@ const CartDrawer: React.FC = () => {
                       <div className='flex-1 min-w-0'>
                         <h3 className='text-sm font-medium text-gray-900 truncate'>{item.title}</h3>
                         <p className='text-sm text-gray-500'>
-                          {item.variantTitle && `Variant: ${item.variantTitle}`}
+                          {item.type === 'sample'
+                            ? 'Sample'
+                            : item.variantTitle && `Variant: ${item.variantTitle}`}
                         </p>
-                        <div className='flex items-center space-x-2 mt-2'>
-                          <button
-                            onClick={() =>
-                              updateQuantity(item.variantId, Math.max(0, item.quantity - 1))
-                            }
-                            className='w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50'
-                          >
-                            -
-                          </button>
-                          <span className='text-sm text-gray-900 w-8 text-center'>
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                            className='w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50'
-                          >
-                            +
-                          </button>
-                        </div>
+                        {!item.isSample && (
+                          <div className='flex items-center space-x-2 mt-2'>
+                            <button
+                              onClick={() =>
+                                updateQuantity(
+                                  item.variantId,
+                                  Math.max(0, item.quantity - 1),
+                                  item.isSample,
+                                )
+                              }
+                              className='w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50'
+                            >
+                              -
+                            </button>
+                            <span className='text-sm text-gray-900 w-8 text-center'>
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                updateQuantity(item.variantId, item.quantity + 1, item.isSample)
+                              }
+                              className='w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50'
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+                        {item.type === 'sample' && (
+                          <div className='mt-2'>
+                            <span className='inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full'>
+                              Sample Order
+                            </span>
+                          </div>
+                        )}
+                        {item.type === 'main' && (
+                          <div className='mt-2'>
+                            <span className='inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full'>
+                              Main Product
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className='flex flex-col items-end space-y-2'>
                         <p className='text-sm font-medium text-gray-900'>
@@ -238,9 +262,15 @@ const CartDrawer: React.FC = () => {
                             amount: (parseFloat(item.price.amount) * item.quantity).toString(),
                             currencyCode: item.price.currencyCode,
                           })}
+                          {item.type === 'sample' && (
+                            <span className='text-xs text-blue-600 ml-1'>(min price)</span>
+                          )}
+                          {item.type === 'main' && (
+                            <span className='text-xs text-green-600 ml-1'>(main)</span>
+                          )}
                         </p>
                         <button
-                          onClick={() => removeItem(item.variantId)}
+                          onClick={() => removeItem(item.variantId, item.isSample)}
                           className='text-red-500 hover:text-red-700 text-sm'
                         >
                           Remove
