@@ -6,6 +6,7 @@ interface OrderTabProps {
   orderState: OrderState;
   calculations: ProductCalculations;
   packSize: number;
+  unit: 'm2' | 'ft2';
   onUpdateOrder: (updates: Partial<OrderState>) => void;
 }
 
@@ -13,17 +14,24 @@ const OrderTab: React.FC<OrderTabProps> = ({
   orderState,
   calculations,
   packSize,
+  unit,
   onUpdateOrder,
 }) => {
   const { quantity } = orderState;
   const { totalPriceOrder } = calculations;
+
+  // Get unit symbol for display
+  const unitSymbol = unit === 'm2' ? 'm²' : 'ft²';
 
   const handleQuantityChange = (newQuantity: number) => {
     onUpdateOrder({ quantity: Math.max(1, newQuantity) });
   };
 
   return (
-    <div className='grid grid-cols-2 rounded-b-lg overflow-hidden' style={{backgroundColor: '#EFE2CC'}}>
+    <div
+      className='grid grid-cols-2 rounded-b-lg overflow-hidden'
+      style={{ backgroundColor: '#EFE2CC' }}
+    >
       {/* Left side - Quantity selector */}
       <div className='p-4'>
         <div className='space-y-4'>
@@ -59,9 +67,14 @@ const OrderTab: React.FC<OrderTabProps> = ({
           <p className='font-medium text-amber-800 text-lg'>Total:</p>
           <p className='text-2xl font-bold text-amber-900'>{formatCurrency(totalPriceOrder)}</p>
           <div className='text-sm text-amber-700 space-y-1'>
-            <div>Total (m²): {(quantity * packSize).toFixed(2)}</div>
+            <div>
+              Total ({unitSymbol}): {(quantity * packSize).toFixed(2)}
+            </div>
             <div>Total Packs: {quantity}</div>
-            <div>(Each pack contains {packSize}m²)</div>
+            <div>
+              (Each pack contains {packSize}
+              {unitSymbol})
+            </div>
           </div>
         </div>
       </div>

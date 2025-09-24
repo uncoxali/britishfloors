@@ -289,6 +289,9 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     return activeTab === 'calculate' ? calculations.packsNeeded : orderState.quantity;
   };
 
+  // Get unit symbol for display
+  const displayUnitSymbol = calculationState.unit === 'm2' ? 'm²' : 'ft²';
+
   // Ensure we have at least one image for the gallery
   const galleryImages =
     images.length > 0
@@ -435,6 +438,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
                 orderState={orderState}
                 calculations={calculations}
                 packSize={packSize}
+                unit={calculationState.unit}
                 onUpdateOrder={updateOrderState}
               />
             )}

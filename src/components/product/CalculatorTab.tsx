@@ -19,8 +19,15 @@ const CalculatorTab: React.FC<CalculatorTabProps> = ({
   const { calcMethod, area, width, length, unit, wastagePercent } = calculationState;
   const { areaWithWastage, packsNeeded, totalPriceCalculate } = calculations;
 
+  // Determine unit symbols based on selected unit
+  const unitSymbol = unit === 'm2' ? 'm' : 'ft';
+  const areaUnitSymbol = unit === 'm2' ? 'm²' : 'ft²';
+
   return (
-    <div className='grid grid-cols-2 rounded-b-lg overflow-hidden' style={{backgroundColor: '#EFE2CC'}}>
+    <div
+      className='grid grid-cols-2 rounded-b-lg overflow-hidden'
+      style={{ backgroundColor: '#EFE2CC' }}
+    >
       {/* Left side - Calculate flooring */}
       <div className='p-4'>
         {/* Area/Dimensions Selection */}
@@ -81,10 +88,12 @@ const CalculatorTab: React.FC<CalculatorTabProps> = ({
               <input
                 value={area}
                 onChange={(e) => onUpdateCalculation({ area: e.target.value })}
-                placeholder='total area required'
+                placeholder={`total area required (${areaUnitSymbol})`}
                 className='w-full border border-amber-300 rounded-lg px-3 py-2 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white'
               />
-              <span className='absolute right-3 top-2 text-amber-700 text-sm font-medium'>m²</span>
+              <span className='absolute right-3 top-2 text-amber-700 text-sm font-medium'>
+                {areaUnitSymbol}
+              </span>
             </div>
           </div>
         )}
@@ -94,13 +103,13 @@ const CalculatorTab: React.FC<CalculatorTabProps> = ({
             <input
               value={width}
               onChange={(e) => onUpdateCalculation({ width: e.target.value })}
-              placeholder='Width (m)'
+              placeholder={`Width (${unitSymbol})`}
               className='border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white'
             />
             <input
               value={length}
               onChange={(e) => onUpdateCalculation({ length: e.target.value })}
-              placeholder='Length (m)'
+              placeholder={`Length (${unitSymbol})`}
               className='border border-amber-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white'
             />
           </div>
@@ -142,9 +151,14 @@ const CalculatorTab: React.FC<CalculatorTabProps> = ({
           <p className='font-medium text-amber-800 text-lg'>Total:</p>
           <p className='text-2xl font-bold text-amber-900'>{formatCurrency(totalPriceCalculate)}</p>
           <div className='text-sm text-amber-700 space-y-1'>
-            <div>Total (m²): {areaWithWastage.toFixed(2)}</div>
+            <div>
+              Total ({areaUnitSymbol}): {areaWithWastage.toFixed(2)}
+            </div>
             <div>Total Packs: {packsNeeded}</div>
-            <div>(Each pack contains {packSize}m²)</div>
+            <div>
+              (Each pack contains {packSize}
+              {areaUnitSymbol})
+            </div>
             {wastagePercent > 0 && <div>Wastage: {wastagePercent}%</div>}
           </div>
         </div>
