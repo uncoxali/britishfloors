@@ -1,6 +1,6 @@
 import React from 'react';
 import { CalculationState, ProductCalculations } from '@/types/product';
-import { formatCurrency } from '@/utils/productUtils';
+import { formatCurrency, m2ToFt } from '@/utils/productUtils';
 import '@/styles/slider.css';
 
 interface CalculatorTabProps {
@@ -22,6 +22,9 @@ const CalculatorTab: React.FC<CalculatorTabProps> = ({
   // Determine unit symbols based on selected unit
   const unitSymbol = unit === 'm2' ? 'm' : 'ft';
   const areaUnitSymbol = unit === 'm2' ? 'm²' : 'ft²';
+  
+  // Convert pack size based on selected unit
+  const convertedPackSize = unit === 'm2' ? packSize : m2ToFt(packSize);
 
   return (
     <div
@@ -156,7 +159,7 @@ const CalculatorTab: React.FC<CalculatorTabProps> = ({
             </div>
             <div>Total Packs: {packsNeeded}</div>
             <div>
-              (Each pack contains {packSize}
+              (Each pack contains {convertedPackSize.toFixed(2)}
               {areaUnitSymbol})
             </div>
             {wastagePercent > 0 && <div>Wastage: {wastagePercent}%</div>}

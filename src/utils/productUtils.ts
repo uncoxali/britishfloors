@@ -248,6 +248,13 @@ export const ftToM2 = (area: number): number => {
 };
 
 /**
+ * Converts square meters to square feet
+ */
+export const m2ToFt = (area: number): number => {
+  return area / 0.092903;
+};
+
+/**
  * Calculates area with wastage percentage
  */
 export const calculateAreaWithWastage = (baseArea: number, wastagePercent: number): number => {

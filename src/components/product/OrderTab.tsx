@@ -1,6 +1,6 @@
 import React from 'react';
 import { OrderState, ProductCalculations } from '@/types/product';
-import { formatCurrency } from '@/utils/productUtils';
+import { formatCurrency, m2ToFt } from '@/utils/productUtils';
 
 interface OrderTabProps {
   orderState: OrderState;
@@ -22,6 +22,9 @@ const OrderTab: React.FC<OrderTabProps> = ({
 
   // Get unit symbol for display
   const unitSymbol = unit === 'm2' ? 'm²' : 'ft²';
+  
+  // Convert pack size based on selected unit
+  const convertedPackSize = unit === 'm2' ? packSize : m2ToFt(packSize);
 
   const handleQuantityChange = (newQuantity: number) => {
     onUpdateOrder({ quantity: Math.max(1, newQuantity) });
@@ -72,7 +75,7 @@ const OrderTab: React.FC<OrderTabProps> = ({
             </div>
             <div>Total Packs: {quantity}</div>
             <div>
-              (Each pack contains {packSize}
+              (Each pack contains {convertedPackSize.toFixed(2)}
               {unitSymbol})
             </div>
           </div>
