@@ -55,7 +55,7 @@ export default async function HomePage() {
 
       {/* Featured Categories Section */}
       <section className='py-5'>
-        <div className='w-full px-4 sm:px-6 lg:px-8'>
+        <div className='max-w-[110rem] mx-auto px-4 sm:px-6 lg:px-8'>
           {/* Section Title */}
           <div className='text-center mb-12'>
             <h2 className='text-3xl lg:text-4xl font-bold text-blue-900 mb-4'>
@@ -64,8 +64,8 @@ export default async function HomePage() {
           </div>
 
           {/* Categories Grid */}
-          <div className='flex justify-center'>
-            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-16 mx-auto'>
+          <div className='w-full flex justify-center'>
+            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-16'>
               {collections.length > 0 ? (
                 collections.slice(0, 5).map((collection) => (
                   <Link
@@ -80,6 +80,8 @@ export default async function HomePage() {
                         width={280}
                         height={320}
                         className='object-cover w-full h-full group-hover:scale-105 transition-transform duration-300'
+                        priority={false}
+                        loading='lazy'
                       />
                       <div className='pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
                         <div className='absolute inset-0 bg-gradient-to-t from-white/95 via-white/70 to-transparent' />
@@ -112,6 +114,8 @@ export default async function HomePage() {
                     width={400}
                     height={300}
                     className='w-auto h-auto max-w-full'
+                    priority={false}
+                    loading='lazy'
                   />
                 </div>
 
@@ -142,7 +146,7 @@ export default async function HomePage() {
       </section>
 
       {/* Popular Products Section */}
-      <section className='py-5'>
+      <section className='py-5 max-w-[110rem] mx-auto'>
         <div className='w-full px-4 sm:px-6 lg:px-8'>
           {/* Section Title */}
           <div className='text-center mb-12'>
@@ -161,6 +165,8 @@ export default async function HomePage() {
                     width={600}
                     height={400}
                     className='w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300'
+                    priority={false}
+                    loading='lazy'
                   />
                   <div className='absolute inset-0 bg-black bg-opacity-40 flex items-end'>
                     <div className='p-4 text-white'>
@@ -183,6 +189,8 @@ export default async function HomePage() {
                     width={600}
                     height={400}
                     className='w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300'
+                    priority={false}
+                    loading='lazy'
                   />
                   <div className='absolute inset-0 bg-black bg-opacity-40 flex items-end'>
                     <div className='p-4 text-white'>
@@ -205,6 +213,8 @@ export default async function HomePage() {
                     width={600}
                     height={400}
                     className='w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300'
+                    priority={false}
+                    loading='lazy'
                   />
                   <div className='absolute inset-0 bg-black bg-opacity-40 flex items-end'>
                     <div className='p-4 text-white'>
@@ -227,6 +237,8 @@ export default async function HomePage() {
                     width={600}
                     height={400}
                     className='w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300'
+                    priority={false}
+                    loading='lazy'
                   />
                   <div className='absolute inset-0 bg-black bg-opacity-40 flex items-end'>
                     <div className='p-4 text-white'>
@@ -243,7 +255,7 @@ export default async function HomePage() {
       </section>
 
       {/* About Us Section */}
-      <section className='py-5'>
+      <section className='py-5 max-w-[110rem] mx-auto'>
         <div className='w-full px-4 sm:px-6 lg:px-8'>
           <div className='text-center mb-12'>
             <h2 className='text-3xl lg:text-4xl font-bold text-blue-900 mb-4'>About Us</h2>
@@ -257,6 +269,8 @@ export default async function HomePage() {
                 width={72}
                 height={72}
                 className='mb-4'
+                priority={false}
+                loading='lazy'
               />
               <h3 className='text-blue-900 font-bold text-lg mb-2'>Quality & Authenticity</h3>
               <p className='text-gray-600 text-sm leading-6 max-w-xs'>
@@ -273,6 +287,8 @@ export default async function HomePage() {
                 width={72}
                 height={72}
                 className='mb-4'
+                priority={false}
+                loading='lazy'
               />
               <h3 className='text-blue-900 font-bold text-lg mb-2'>Innovation & Design</h3>
               <p className='text-gray-600 text-sm leading-6 max-w-xs'>
@@ -288,6 +304,8 @@ export default async function HomePage() {
                 width={72}
                 height={72}
                 className='mb-4'
+                priority={false}
+                loading='lazy'
               />
               <h3 className='text-blue-900 font-bold text-lg mb-2'>Trust & Service</h3>
               <p className='text-gray-600 text-sm leading-6 max-w-xs'>

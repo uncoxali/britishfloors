@@ -19,6 +19,7 @@ import VisualSimilarProducts from '@/components/product/VisualSimilarProducts';
 import ProductSpecificationsDetails from '@/components/product/ProductSpecificationsDetails';
 import AccordionItem from '@/components/ui/AccordionItem';
 import ProductAccordionItem from '@/components/ui/ProductAccordionItem';
+import ReviewsSection from '@/components/product/ReviewsSection';
 import {
   parseRoomSuitabilityData,
   parseRoomSuitabilityFromTags,
@@ -158,115 +159,134 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     [isInCart, product, adminCostPerItem, defaultPackSize, defaultPricePerM2],
   );
 
-  // Memoized product data extraction
+  // Memoized product data extraction with improved error handling
   const productData = useMemo(() => {
-    // Extract images safely
-    const images = product.images?.edges?.map((edge) => edge.node) || [];
+    try {
+      // Extract images safely
+      const images = product.images?.edges?.map((edge) => edge.node) || [];
 
-    // Function to extract pack size from various sources
-    const getPackSize = (): number => {
-      const defaultPackSize = 1.92;
+      // Function to extract pack size from various sources
+      const getPackSize = (): number => {
+        const defaultPackSize = 1.92;
 
-      // Try dimensions first
-      if (product.dimensions) {
-        const dimensionSources = [
-          product.dimensions.reference,
-          ...(product.dimensions.references?.nodes || []),
-        ].filter(Boolean);
+        // Try dimensions first
+        if (product.dimensions) {
+          const dimensionSources = [
+            product.dimensions.reference,
+            ...(product.dimensions.references?.nodes || []),
+          ].filter(Boolean);
 
-        for (const source of dimensionSources) {
-          if (source?.fields) {
-            const packSizeField = source.fields.find((field) => field.key === 'pack_size');
-            if (packSizeField?.value) {
-              const numValue = extractNumericValue(packSizeField.value);
-              if (numValue && numValue > 0) return numValue;
+          for (const source of dimensionSources) {
+            if (source?.fields) {
+              const packSizeField = source.fields.find((field) => field.key === 'pack_size');
+              if (packSizeField?.value) {
+                const numValue = extractNumericValue(packSizeField.value);
+                if (numValue && numValue > 0) return numValue;
+              }
             }
           }
         }
-      }
 
-      // Try specifications as fallback
-      if (product.specifications) {
-        const specSources = [
-          product.specifications.reference,
-          ...(product.specifications.references?.nodes || []),
-        ].filter(Boolean);
+        // Try specifications as fallback
+        if (product.specifications) {
+          const specSources = [
+            product.specifications.reference,
+            ...(product.specifications.references?.nodes || []),
+          ].filter(Boolean);
 
-        for (const source of specSources) {
-          if (source?.fields) {
-            const packSizeField = source.fields.find((field) => field.key === 'pack_size');
-            if (packSizeField?.value) {
-              const numValue = extractNumericValue(packSizeField.value);
-              if (numValue && numValue > 0) return numValue;
+          for (const source of specSources) {
+            if (source?.fields) {
+              const packSizeField = source.fields.find((field) => field.key === 'pack_size');
+              if (packSizeField?.value) {
+                const numValue = extractNumericValue(packSizeField.value);
+                if (numValue && numValue > 0) return numValue;
+              }
             }
           }
         }
-      }
 
-      // Try metafields as last resort
-      if (product.metafields) {
-        const packSizeMetafield = product.metafields.find(
-          (field) => field.key === 'pack_size' || field.key === 'packSize',
-        );
-        if (packSizeMetafield?.value) {
-          const numValue = extractNumericValue(packSizeMetafield.value);
-          if (numValue && numValue > 0) return numValue;
+        // Try metafields as last resort
+        if (product.metafields) {
+          const packSizeMetafield = product.metafields.find(
+            (field) => field.key === 'pack_size' || field.key === 'packSize',
+          );
+          if (packSizeMetafield?.value) {
+            const numValue = extractNumericValue(packSizeMetafield.value);
+            if (numValue && numValue > 0) return numValue;
+          }
         }
+
+        return defaultPackSize;
+      };
+
+      // Extract pricing information safely
+      const maxPrice = product.priceRange?.maxVariantPrice;
+      const compareAtPrice = product.compareAtPriceRange?.maxVariantPrice;
+
+      if (!maxPrice) {
+        console.error('No price information available for product:', product.id);
+        return null;
       }
 
-      return defaultPackSize;
-    };
+      const pricePerM2 = parseFloat(maxPrice.amount);
+      if (isNaN(pricePerM2)) {
+        console.error('Invalid price information for product:', product.id);
+        return null;
+      }
 
-    // Extract pricing information safely
-    const maxPrice = product.priceRange?.maxVariantPrice;
-    const compareAtPrice = product.compareAtPriceRange?.maxVariantPrice;
+      const packSize = getPackSize();
 
-    if (!maxPrice) {
-      console.error('No price information available for product:', product.id);
+      // Calculate discount information
+      const hasDiscount = compareAtPrice && parseFloat(compareAtPrice.amount) > pricePerM2;
+      const discountPercentage = hasDiscount
+        ? Math.round(
+            ((parseFloat(compareAtPrice.amount) - pricePerM2) / parseFloat(compareAtPrice.amount)) *
+              100,
+          )
+        : 0;
+
+      // Calculate cost per pack - use API value if available, otherwise calculate
+      const apiCostPerItem = product.costPerItem?.value
+        ? extractNumericValue(product.costPerItem.value)
+        : null;
+      const costPerPack =
+        apiCostPerItem && apiCostPerItem > 0 ? apiCostPerItem : pricePerM2 * packSize;
+      const originalCostPerPack = hasDiscount
+        ? parseFloat(compareAtPrice.amount) * packSize
+        : costPerPack;
+
+      return {
+        images,
+        packSize,
+        pricePerM2,
+        costPerPack,
+        originalCostPerPack,
+        hasDiscount,
+        discountPercentage,
+        compareAtPrice,
+        maxPrice,
+      };
+    } catch (error) {
+      console.error('Error extracting product data:', error);
       return null;
     }
-
-    const pricePerM2 = parseFloat(maxPrice.amount);
-    const packSize = getPackSize();
-
-    // Calculate discount information
-    const hasDiscount = compareAtPrice && parseFloat(compareAtPrice.amount) > pricePerM2;
-    const discountPercentage = hasDiscount
-      ? Math.round(
-          ((parseFloat(compareAtPrice.amount) - pricePerM2) / parseFloat(compareAtPrice.amount)) *
-            100,
-        )
-      : 0;
-
-    // Calculate cost per pack - use API value if available, otherwise calculate
-    const apiCostPerItem = product.costPerItem?.value
-      ? extractNumericValue(product.costPerItem.value)
-      : null;
-    const costPerPack =
-      apiCostPerItem && apiCostPerItem > 0 ? apiCostPerItem : pricePerM2 * packSize;
-    const originalCostPerPack = hasDiscount
-      ? parseFloat(compareAtPrice.amount) * packSize
-      : costPerPack;
-
-    return {
-      images,
-      packSize,
-      pricePerM2,
-      costPerPack,
-      originalCostPerPack,
-      hasDiscount,
-      discountPercentage,
-      compareAtPrice,
-      maxPrice,
-    };
   }, [product]);
 
   // Handle case where product data extraction failed
   if (!productData) {
     return (
       <div className='w-full px-4 py-6'>
-        <div className='text-center text-red-600'>
-          <p>Error loading product information. Please try again.</p>
+        <div className='text-center text-red-600 bg-red-50 p-6 rounded-lg'>
+          <h3 className='text-xl font-bold mb-2'>Product Not Available</h3>
+          <p className='mb-4'>
+            We couldn&apos;t load the product information. Please try again later.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className='bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors'
+          >
+            Reload Page
+          </button>
         </div>
       </div>
     );
@@ -695,6 +715,9 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
           </div>
         </div>
       </div>
+
+      {/* Reviews Section */}
+      <ReviewsSection productId={product.id} />
     </div>
   );
 };

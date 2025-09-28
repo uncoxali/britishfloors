@@ -20,8 +20,8 @@ const Header: React.FC = () => {
   return (
     <>
       {/* Top Section - White background with logo, search, and icons */}
-      <div className='bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-40'>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className='bg-white  border-b border-gray-200 fixed top-0 left-0 right-0 z-40'>
+        <div className='max-w-[110rem] mx-auto px-4 sm:px-6 lg:px-8'>
           <div className='flex justify-between items-center h-16'>
             {/* Logo */}
             <Link href='/' className='flex items-center space-x-3'>
@@ -137,9 +137,9 @@ const Header: React.FC = () => {
       </div>
 
       {/* Bottom Section - Blue Navigation Bar */}
-      <nav className='bg-[#1A4685] shadow-lg fixed top-16 left-0 right-0 z-30'>
+      <nav className='bg-[#1A4685]  shadow-lg fixed top-16 left-0 right-0 z-30'>
         <div className='w-full px-4 sm:px-6 lg:px-8'>
-          <div className='hidden lg:flex justify-center space-x-8 h-12 items-center'>
+          <div className='hidden max-w-[110rem] mx-auto lg:flex justify-center space-x-8 h-12 items-center'>
             <Link
               href='/products?category=engineered-wood'
               className='text-white hover:text-blue-200 px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap'
@@ -194,8 +194,8 @@ const Header: React.FC = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className='lg:hidden fixed top-28 left-0 right-0 z-20 bg-blue-700 border-t border-blue-600'>
-          <div className='px-4 py-3 space-y-2'>
+        <div className='lg:hidden fixed top-28 left-0 right-0 z-20 bg-blue-700 border-t border-blue-600 max-h-[calc(100vh-7rem)] overflow-y-auto'>
+          <div className='px-4 py-3 space-y-2 pb-4'>
             <div className='md:hidden mb-4'>
               <SearchBar />
             </div>

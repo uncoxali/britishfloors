@@ -26,6 +26,10 @@ export interface SearchFilters {
   sortBy?: string;
   minPrice?: number;
   maxPrice?: number;
+  // Add more filter options
+  inStock?: boolean;
+  onSale?: boolean;
+  rating?: number;
 }
 
 export interface SearchOptions {
@@ -70,21 +74,27 @@ export const useSearch = () => {
         const transformedProducts: SearchProduct[] = response.products.edges.map((edge) => {
           const product = edge.node;
 
-          // Calculate pricing and discounts
+          // Calculate pricing and discounts with error handling
           const price = parseFloat(product.priceRange.minVariantPrice.amount);
+          if (isNaN(price)) {
+            console.error('Invalid price for product:', product.id);
+            return null; // Skip invalid products
+          }
+
           let originalPrice: number | undefined;
           let discount: number | undefined;
 
           // Check if there's a compareAtPriceRange for discounts
           if (product.compareAtPriceRange &&
             product.compareAtPriceRange.minVariantPrice &&
+            !isNaN(parseFloat(product.compareAtPriceRange.minVariantPrice.amount)) &&
             parseFloat(product.compareAtPriceRange.minVariantPrice.amount) > price) {
             originalPrice = parseFloat(product.compareAtPriceRange.minVariantPrice.amount);
             discount = Math.round(((originalPrice - price) / originalPrice) * 100);
           } else if (product.priceRange.maxVariantPrice.amount !== product.priceRange.minVariantPrice.amount) {
             // Fallback to price range difference if no compareAtPrice
             const maxPrice = parseFloat(product.priceRange.maxVariantPrice.amount);
-            if (maxPrice > price) {
+            if (!isNaN(maxPrice) && maxPrice > price) {
               originalPrice = maxPrice;
               discount = Math.round(((maxPrice - price) / maxPrice) * 100);
             }
@@ -114,18 +124,18 @@ export const useSearch = () => {
             brand,
             description: product.description
           };
-        });
+        }).filter(Boolean) as SearchProduct[]; // Remove null values
 
         setAllResults(transformedProducts);
 
         // Generate available filters
         const categories = [...new Set(transformedProducts.map(p => p.category))];
         const brands = [...new Set(transformedProducts.map(p => p.brand).filter(Boolean))] as string[];
-        const prices = transformedProducts.map(p => p.price);
-        const priceRange = {
+        const prices = transformedProducts.map(p => p.price).filter(p => !isNaN(p));
+        const priceRange = prices.length > 0 ? {
           min: Math.floor(Math.min(...prices)),
           max: Math.ceil(Math.max(...prices))
-        };
+        } : { min: 0, max: 1000 };
 
         setAvailableFilters({ categories, brands, priceRange });
 
@@ -282,6 +292,23 @@ function applyFiltersToResults(products: SearchProduct[], filters?: SearchFilter
     });
   }
 
+  // In stock filter
+  if (filters.inStock) {
+    // For now, we'll assume all products are in stock
+    // In a real implementation, this would check product availability
+  }
+
+  // On sale filter
+  if (filters.onSale) {
+    filtered = filtered.filter(product => product.discount && product.discount > 0);
+  }
+
+  // Rating filter
+  if (filters.rating !== undefined) {
+    // For now, we'll assume all products have a high rating
+    // In a real implementation, this would check product ratings
+  }
+
   // Sorting
   if (filters.sortBy) {
     switch (filters.sortBy) {
@@ -302,6 +329,10 @@ function applyFiltersToResults(products: SearchProduct[], filters?: SearchFilter
         break;
       case 'newest':
         filtered.sort((a, b) => b.id.localeCompare(a.id));
+        break;
+      case 'rating':
+        // For now, we'll sort by discount as a proxy for rating
+        filtered.sort((a, b) => (b.discount || 0) - (a.discount || 0));
         break;
       default:
         // 'featured' - keep original order
@@ -407,6 +438,17 @@ function extractCategory(title: string, description: string, tags?: string[]): s
       if (tags.some(tag => tag.toLowerCase().includes(type.toLowerCase()))) {
         return type;
       }
+    }
+  }
+
+  // Try to extract category from title structure (e.g., "Brand Category Name")
+  const titleWords = title.split(' ');
+  if (titleWords.length >= 2) {
+    // Check if second word is a common category
+    const possibleCategory = titleWords[1].toLowerCase();
+    const commonCategories = ['laminate', 'engineered', 'vinyl', 'parquet', 'bamboo', 'cork'];
+    if (commonCategories.includes(possibleCategory)) {
+      return possibleCategory.charAt(0).toUpperCase() + possibleCategory.slice(1);
     }
   }
 

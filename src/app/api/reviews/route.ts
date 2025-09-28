@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ShopifyProduct } from '@/lib/types/shopify';
 
 // In-memory storage for reviews (in a real application, this would be a database)
 // This is just for demonstration purposes
@@ -13,6 +12,8 @@ const reviews: {
         rating: number;
         comment: string;
         isVerified: boolean;
+        likes: number;
+        dislikes: number;
     }[];
 } = {};
 
@@ -78,7 +79,9 @@ export async function POST(request: NextRequest) {
             date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
             rating,
             comment,
-            isVerified: true // In a real app, this would depend on whether the user purchased the product
+            isVerified: true, // In a real app, this would depend on whether the user purchased the product
+            likes: 0,
+            dislikes: 0
         };
 
         // Add to reviews array
@@ -92,6 +95,59 @@ export async function POST(request: NextRequest) {
         console.error('Error adding review:', error);
         return NextResponse.json(
             { error: 'Failed to add review' },
+            { status: 500 }
+        );
+    }
+}
+
+// Update a review (like/dislike)
+export async function PUT(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { productId, reviewId, action } = body;
+
+        if (!productId || !reviewId || !action) {
+            return NextResponse.json(
+                { error: 'Missing required fields' },
+                { status: 400 }
+            );
+        }
+
+        if (!reviews[productId]) {
+            return NextResponse.json(
+                { error: 'Product not found' },
+                { status: 404 }
+            );
+        }
+
+        const reviewIndex = reviews[productId].findIndex(review => review.id === reviewId);
+        if (reviewIndex === -1) {
+            return NextResponse.json(
+                { error: 'Review not found' },
+                { status: 404 }
+            );
+        }
+
+        // Update like/dislike counts
+        if (action === 'like') {
+            reviews[productId][reviewIndex].likes += 1;
+        } else if (action === 'dislike') {
+            reviews[productId][reviewIndex].dislikes += 1;
+        } else {
+            return NextResponse.json(
+                { error: 'Invalid action. Use "like" or "dislike"' },
+                { status: 400 }
+            );
+        }
+
+        return NextResponse.json({
+            message: 'Review updated successfully',
+            review: reviews[productId][reviewIndex]
+        });
+    } catch (error) {
+        console.error('Error updating review:', error);
+        return NextResponse.json(
+            { error: 'Failed to update review' },
             { status: 500 }
         );
     }

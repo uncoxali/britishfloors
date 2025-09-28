@@ -11,6 +11,8 @@ interface Review {
   rating: number;
   comment: string;
   isVerified: boolean;
+  likes: number;
+  dislikes: number;
 }
 
 const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
@@ -108,6 +110,48 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
     </svg>
   );
 
+  // Like Icon Component using the SVG file
+  const LikeIcon = () => <img src='/images/svg/like.svg' alt='Like' className='w-5 h-5' />;
+
+  // Dislike Icon Component (rotated like icon)
+  const DislikeIcon = () => (
+    <img src='/images/svg/like.svg' alt='Dislike' className='w-5 h-5 transform rotate-180' />
+  );
+
+  // Handle like/dislike action
+  const handleLikeDislike = async (reviewId: string, action: 'like' | 'dislike') => {
+    try {
+      const response = await fetch('/api/reviews', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId,
+          reviewId,
+          action,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update the review in the state
+        setReviews((prevReviews) =>
+          prevReviews.map((review) =>
+            review.id === reviewId
+              ? { ...review, likes: data.review.likes, dislikes: data.review.dislikes }
+              : review,
+          ),
+        );
+      } else {
+        console.error('Error updating review:', data.error);
+      }
+    } catch (err) {
+      console.error('Error updating review:', err);
+    }
+  };
+
   if (loading) {
     return (
       <div className='mt-16 -mx-4 sm:-mx-6 lg:-mx-8'>
@@ -129,7 +173,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-12'>
             {/* Reviews List */}
             <div>
-              <h2 className='text-2xl font-bold text-blue-900 mb-6'>Reviews</h2>
+              <h2 className='text-2xl font-bold text-[#C99D55] mb-6'>Reviews</h2>
 
               {error && <div className='bg-red-50 text-red-700 p-4 rounded-lg mb-6'>{error}</div>}
 
@@ -139,8 +183,8 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                     <div key={review.id} className='bg-white rounded-2xl p-6 shadow-sm'>
                       <div className='flex justify-between items-start mb-4'>
                         <div>
-                          <h3 className='font-semibold text-gray-900'>{review.name}</h3>
-                          <p className='text-sm text-gray-500'>{review.date}</p>
+                          <h3 className='font-semibold text-[#C99D55]'>{review.name}</h3>
+                          <p className='text-sm text-[#727272]'>{review.date}</p>
                         </div>
                         <div className='flex items-center'>
                           {[...Array(5)].map((_, i) => (
@@ -148,7 +192,23 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                           ))}
                         </div>
                       </div>
-                      <p className='text-gray-700'>{review.comment}</p>
+                      <p className='text-gray-700 mb-4'>{review.comment}</p>
+                      <div className='flex items-center space-x-4'>
+                        <button
+                          onClick={() => handleLikeDislike(review.id, 'like')}
+                          className='flex items-center space-x-1 text-gray-500 hover:text-[#C99D55] transition-colors'
+                        >
+                          <LikeIcon />
+                          <span>{review.likes}</span>
+                        </button>
+                        <button
+                          onClick={() => handleLikeDislike(review.id, 'dislike')}
+                          className='flex items-center space-x-1 text-gray-500 hover:text-[#C99D55] transition-colors'
+                        >
+                          <DislikeIcon />
+                          <span>{review.dislikes}</span>
+                        </button>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -161,7 +221,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
 
             {/* Review Form */}
             <div>
-              <h2 className='text-2xl font-bold text-blue-900 mb-6'>Write a Review</h2>
+              <h2 className='text-2xl font-bold text-[#C99D55]  mb-6'>Write a Review</h2>
 
               <form onSubmit={handleSubmit} className='bg-white rounded-2xl p-6 shadow-sm'>
                 <div className='mb-6'>
@@ -191,7 +251,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                       type='text'
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                      className='w-full px-4 py-2 border border-[#C99D55] rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
                       required
                     />
                   </div>
@@ -203,7 +263,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                       type='email'
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                      className='w-full px-4 py-2 border border-[#C99D55] rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
                       required
                     />
                   </div>
@@ -217,7 +277,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={4}
-                    className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500'
+                    className='w-full px-4 py-2 border border-[#C99D55] rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
                     required
                   ></textarea>
                 </div>

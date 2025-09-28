@@ -35,21 +35,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const isInCart = mounted ? isProductInCart(product.id, false) : false; // Regular product
   const isSampleInCart = mounted ? isProductInCart(product.id, true) : false; // Sample
 
-  // Calculate discount - more realistic discount logic
-  const simulatedOriginalPrice = Math.round(price * 1.4);
-  const hasDiscount = price < 100 && simulatedOriginalPrice > price;
+  // Calculate discount based on actual compareAtPrice if available
   let originalPrice: number | undefined;
   let discount: number | undefined;
 
-  if (hasDiscount) {
-    originalPrice = simulatedOriginalPrice;
-    discount = Math.round(((simulatedOriginalPrice - price) / simulatedOriginalPrice) * 100);
-    // Ensure discount is at least 10% if we're showing a discount
-    if (discount < 10) {
-      discount = 15; // Default to 15% discount
-      originalPrice = Math.round(price / 0.85); // Recalculate original price for 15% discount
+  // Check if product has compareAtPriceRange for real discount calculation
+  if (product.compareAtPriceRange?.minVariantPrice?.amount) {
+    const compareAtPrice = parseFloat(product.compareAtPriceRange.minVariantPrice.amount);
+    if (!isNaN(compareAtPrice) && compareAtPrice > price) {
+      originalPrice = compareAtPrice;
+      discount = Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
     }
   }
+
+  const hasDiscount = !!discount && discount > 0;
 
   // Extract dimensions from metaobject (preferred) or fallback to title
   const parseDimJSON = (val?: string): { value?: number; unit?: string } => {
@@ -138,6 +137,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
               width={800}
               height={600}
               className='w-full h-full object-cover'
+              priority={false}
+              loading='lazy'
             />
           ) : (
             <div className='w-full h-full bg-gray-100 flex items-center justify-center'>

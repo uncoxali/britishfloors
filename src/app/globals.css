@@ -75,6 +75,9 @@
   --color-foreground: var(--foreground);
   --font-sans: 'Nunito', system-ui, sans-serif;
   --font-mono: 'Nunito', monospace;
+  --container-padding-sm: 1.5rem;
+  --container-padding-md: 2rem;
+  --container-padding-lg: 3rem;
 }
 
 body {

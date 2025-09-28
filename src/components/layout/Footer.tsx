@@ -4,9 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 const Footer: React.FC = () => {
   return (
-    <footer className='bg-blue-900 text-white'>
+    <footer className='bg-[#1A4685] text-white'>
       {/* Main Footer Content */}
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+      <div className='container mx-auto px-4 sm:px-6 lg:px-8 py-12'>
         <div className='grid grid-cols-1 md:grid-cols-3 gap-8'>
           {/* Quick Links */}
           <div>

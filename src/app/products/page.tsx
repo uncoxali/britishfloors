@@ -59,30 +59,32 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
           if (product.collections && product.collections.edges) {
             // First try exact collection title match
             const collectionMatch = product.collections.edges.some(
-              (edge) => edge.node.title.toLowerCase().replace(/ /g, '-') === category.toLowerCase()
+              (edge) => edge.node.title.toLowerCase().replace(/ /g, '-') === category.toLowerCase(),
             );
             if (collectionMatch) return true;
 
             // Then try collection handle match
             const handleMatch = product.collections.edges.some(
-              (edge) => edge.node.handle.toLowerCase() === category.toLowerCase()
+              (edge) => edge.node.handle.toLowerCase() === category.toLowerCase(),
             );
             if (handleMatch) return true;
           }
-          
+
           // Fallback to title/description matching for products without collections or non-matching collections
           const title = product.title.toLowerCase();
           const description = product.description.toLowerCase();
           const categoryLower = category.toLowerCase();
-          
+
           // Enhanced category matching
           return (
             title.includes(categoryLower) ||
             description.includes(categoryLower) ||
             // Handle specific category mappings
-            (categoryLower === 'luxury-vinyl' && (title.includes('vinyl') || title.includes('lvt'))) ||
+            (categoryLower === 'luxury-vinyl' &&
+              (title.includes('vinyl') || title.includes('lvt'))) ||
             (categoryLower === 'vinyl-lvt' && (title.includes('vinyl') || title.includes('lvt'))) ||
-            (categoryLower === 'engineered-wood' && (title.includes('engineered') || title.includes('wood'))) ||
+            (categoryLower === 'engineered-wood' &&
+              (title.includes('engineered') || title.includes('wood'))) ||
             (categoryLower === 'laminate' && title.includes('laminate')) ||
             (categoryLower === 'parquet' && title.includes('parquet')) ||
             (categoryLower === 'carpet' && title.includes('carpet')) ||
@@ -214,7 +216,13 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                   />
                 </svg>
                 <span className='text-gray-500'>
-                  {search ? `Search results for: '${search}'` : category ? `${category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')} Products` : 'Products'}
+                  {search
+                    ? `Search results for: '${search}'`
+                    : category
+                    ? `${
+                        category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')
+                      } Products`
+                    : 'Products'}
                 </span>
               </div>
             </li>
@@ -237,19 +245,20 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             {/* Page Header */}
             <div className='mb-6'>
               <h1 className='text-3xl font-bold text-blue-900 mb-2'>
-                {search 
-                  ? `Search results for '${search}'` 
-                  : category 
-                    ? `${category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')} Products`
-                    : 'All Products'
-                }
+                {search
+                  ? `Search results for '${search}'`
+                  : category
+                  ? `${
+                      category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')
+                    } Products`
+                  : 'All Products'}
               </h1>
               <p className='text-gray-600'>
                 {search
                   ? `${products.length} results found`
                   : category
-                    ? `${products.length} ${category.replace('-', ' ')} products available`
-                    : `${products.length} products available`}
+                  ? `${products.length} ${category.replace('-', ' ')} products available`
+                  : `${products.length} products available`}
               </p>
             </div>
 

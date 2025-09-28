@@ -101,7 +101,7 @@ const AccountPage: React.FC = () => {
   if (isLoading || (!isAuthenticated && !user) || isRedirecting) {
     return (
       <Layout>
-        <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
           <div className='text-center py-12'>
             <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto'></div>
             <h3 className='mt-4 text-lg font-medium text-gray-900'>Loading...</h3>
@@ -129,7 +129,7 @@ const AccountPage: React.FC = () => {
 
     return (
       <Layout>
-        <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
           <div className='text-center py-12'>
             <h3 className='text-lg font-medium text-red-600'>Error loading user data</h3>
             <p className='text-gray-600 mt-2'>Please try logging in again.</p>
@@ -170,205 +170,237 @@ const AccountPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        <h1 className='text-3xl font-bold text-gray-900 mb-8'>My Account</h1>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
+        {/* Breadcrumb */}
+        <nav className='mb-6 text-sm text-gray-600'>Home / Profile</nav>
 
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
+        <div className='flex flex-col lg:flex-row gap-8'>
           {/* Sidebar */}
-          <div className='lg:col-span-1'>
-            <div className='bg-white p-6 rounded-lg shadow-sm border'>
-              <h2 className='text-lg font-semibold text-gray-900 mb-4'>Account Menu</h2>
-              <nav className='space-y-2'>
-                <Link
-                  href='/account'
-                  className='block px-3 py-2 text-blue-600 bg-blue-50 rounded-md'
-                >
-                  Profile
-                </Link>
-                <Link
-                  href='/account/orders'
-                  className='block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md'
-                >
-                  Order History
-                </Link>
-                <Link
-                  href='/wishlist'
-                  className='block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md'
-                >
-                  Wishlist
-                </Link>
-                <Link
-                  href='/account/addresses'
-                  className='block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md'
-                >
-                  Addresses
-                </Link>
+          <div className='lg:w-1/4'>
+            <div className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden'>
+              {/* User Profile Header */}
+              <div className='bg-[#1A4685] p-6 text-white'>
+                <div className='flex items-center space-x-4'>
+                  <div className='bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16' />
+                  <div>
+                    <h2 className='text-xl font-bold'>Hello</h2>
+                    <p className='text-blue-200'>
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Menu */}
+              <nav className='py-4'>
+                <ul className='space-y-1'>
+                  <li>
+                    <Link
+                      href='/account'
+                      className='flex items-center px-6 py-3 text-base font-medium text-[#1A4685] bg-blue-50 border-r-2 border-[#1A4685]'
+                    >
+                      <span className='mr-3'>Dashboard</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href='/account/downloads'
+                      className='flex items-center px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50'
+                    >
+                      <span className='mr-3'>Downloads</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href='/wishlist'
+                      className='flex items-center px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50'
+                    >
+                      <span className='mr-3'>Favorites</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href='/account/addresses'
+                      className='flex items-center px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50'
+                    >
+                      <span className='mr-3'>Addresses</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href='/account/payment-methods'
+                      className='flex items-center px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50'
+                    >
+                      <span className='mr-3'>Payment methods</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href='/account'
+                      className='flex items-center px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50'
+                    >
+                      <span className='mr-3'>Account details</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href='/account/affiliate'
+                      className='flex items-center px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50'
+                    >
+                      <span className='mr-3'>Affiliate Dashboard</span>
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      onClick={handleLogout}
+                      className='flex items-center w-full px-6 py-3 text-base font-medium text-gray-700 hover:bg-gray-50'
+                    >
+                      <span className='mr-3'>Log out</span>
+                    </button>
+                  </li>
+                </ul>
               </nav>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className='lg:col-span-2 space-y-6'>
-            {/* Shopify Status */}
-            {shopifyStatus && (
-              <div className='bg-white p-6 rounded-lg shadow-sm border'>
-                <h2 className='text-xl font-semibold text-gray-900 mb-4'>
-                  Shopify Connection Status
-                </h2>
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+          <div className='lg:w-3/4 space-y-8'>
+            {/* Order Status Cards */}
+            <div className='bg-white rounded-xl shadow-md border border-gray-200 p-6'>
+              <h2 className='text-xl font-bold text-[#1A4685] mb-6 text-center'>Order Status</h2>
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
+                {[
+                  { status: 'Pending', count: 0, color: '#15386A' },
+                  { status: 'Processing', count: 0, color: '#3F659C' },
+                  { status: 'Completed', count: 0, color: '#88A2C9' },
+                  { status: 'Cancelled', count: 0, color: '#BF004A' },
+                ].map((item, index) => (
                   <div
-                    className={`p-3 rounded-lg ${
-                      shopifyStatus.configured.storeDomain
-                        ? 'bg-green-50 border border-green-200'
-                        : 'bg-red-50 border border-red-200'
-                    }`}
+                    key={index}
+                    className='border border-[#1A4685] rounded-xl p-4 text-center shadow-sm'
+                    style={{ boxShadow: '0px 0px 5px 0px rgba(0, 0, 0, 0.15)' }}
                   >
-                    <div className='flex items-center'>
-                      <div
-                        className={`w-3 h-3 rounded-full mr-2 ${
-                          shopifyStatus.configured.storeDomain ? 'bg-green-500' : 'bg-red-500'
-                        }`}
-                      ></div>
-                      <span className='text-sm font-medium'>Store Domain</span>
-                    </div>
+                    <div
+                      className='w-6 h-6 rounded-sm mx-auto mb-2'
+                      style={{ backgroundColor: item.color }}
+                    ></div>
+                    <h3 className='font-medium text-gray-700'>{item.status}</h3>
+                    <p className='text-2xl font-bold text-gray-900 mt-1'>{item.count}</p>
                   </div>
-                  <div
-                    className={`p-3 rounded-lg ${
-                      shopifyStatus.configured.adminToken
-                        ? 'bg-green-50 border border-green-200'
-                        : 'bg-red-50 border border-red-200'
-                    }`}
-                  >
-                    <div className='flex items-center'>
-                      <div
-                        className={`w-3 h-3 rounded-full mr-2 ${
-                          shopifyStatus.configured.adminToken ? 'bg-green-500' : 'bg-red-500'
-                        }`}
-                      ></div>
-                      <span className='text-sm font-medium'>Admin API</span>
-                    </div>
-                  </div>
-                  <div
-                    className={`p-3 rounded-lg ${
-                      shopifyStatus.configured.storefrontToken
-                        ? 'bg-green-50 border border-green-200'
-                        : 'bg-red-50 border border-red-200'
-                    }`}
-                  >
-                    <div className='flex items-center'>
-                      <div
-                        className={`w-3 h-3 rounded-full mr-2 ${
-                          shopifyStatus.configured.storefrontToken ? 'bg-green-500' : 'bg-red-500'
-                        }`}
-                      ></div>
-                      <span className='text-sm font-medium'>Storefront API</span>
-                    </div>
-                  </div>
-                </div>
-                <div className='mt-4 p-3 bg-gray-50 rounded-lg'>
-                  <p className='text-sm text-gray-600'>
-                    <strong>Status:</strong>{' '}
-                    {shopifyStatus.ready ? '✅ Ready for production' : '❌ Configuration required'}
-                  </p>
-                  <p className='text-sm text-gray-600'>
-                    <strong>Environment:</strong> {shopifyStatus.environment}
-                  </p>
-                </div>
+                ))}
               </div>
-            )}
+            </div>
 
             {/* Profile Information */}
-            <div className='bg-white p-6 rounded-lg shadow-sm border'>
+            <div className='bg-white rounded-xl shadow-md border border-gray-200 p-6'>
               <div className='flex items-center justify-between mb-6'>
-                <h2 className='text-xl font-semibold text-gray-900'>Profile Information</h2>
+                <h2 className='text-xl font-bold text-[#1A4685]'>Account details</h2>
                 {!isEditing && (
-                  <Button onClick={() => setIsEditing(true)} variant='outline' size='sm'>
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    variant='outline'
+                    size='sm'
+                    className='border-[#1A4685] text-[#1A4685] hover:bg-[#1A4685] hover:text-white'
+                  >
                     Edit Profile
                   </Button>
                 )}
               </div>
 
               {isEditing ? (
-                <form className='space-y-4'>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <form className='space-y-6'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
                         First Name
                       </label>
                       <input
                         type='text'
                         value={formData.firstName}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                        className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A4685] focus:border-transparent'
                       />
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>
+                      <label className='block text-sm font-medium text-gray-700 mb-2'>
                         Last Name
                       </label>
                       <input
                         type='text'
                         value={formData.lastName}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                        className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A4685] focus:border-transparent'
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
                       Email Address
                     </label>
                     <input
                       type='email'
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1A4685] focus:border-transparent'
                     />
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    <label className='block text-sm font-medium text-gray-700 mb-2'>
                       Phone Number
                     </label>
                     <PhoneInput
                       value={formData.phone}
                       onChange={(value) => setFormData({ ...formData, phone: value })}
                       placeholder='+44 123 456 7890'
+                      className='w-full'
                     />
                   </div>
 
-                  <div className='flex space-x-2 pt-4'>
-                    <Button onClick={handleSaveProfile} loading={isLoading}>
+                  <div className='flex space-x-4 pt-4'>
+                    <Button
+                      onClick={handleSaveProfile}
+                      loading={isLoading}
+                      className='bg-[#1A4685] hover:bg-[#15386A]'
+                    >
                       Save Changes
                     </Button>
-                    <Button onClick={handleCancelEdit} variant='outline'>
+                    <Button
+                      onClick={handleCancelEdit}
+                      variant='outline'
+                      className='border-gray-300 text-gray-700 hover:bg-gray-50'
+                    >
                       Cancel
                     </Button>
                   </div>
                 </form>
               ) : (
-                <div className='space-y-4'>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <div className='space-y-6'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>
+                      <label className='block text-sm font-medium text-gray-500 mb-1'>
                         First Name
                       </label>
-                      <p className='text-gray-900'>{user?.firstName || 'Not provided'}</p>
+                      <p className='text-gray-900 font-medium'>
+                        {user?.firstName || 'Not provided'}
+                      </p>
                     </div>
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-1'>
+                      <label className='block text-sm font-medium text-gray-500 mb-1'>
                         Last Name
                       </label>
-                      <p className='text-gray-900'>{user?.lastName || 'Not provided'}</p>
+                      <p className='text-gray-900 font-medium'>
+                        {user?.lastName || 'Not provided'}
+                      </p>
                     </div>
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
                       Email Address
                     </label>
-                    <p className='text-gray-900'>
+                    <p className='text-gray-900 font-medium'>
                       {user?.email ||
                         (() => {
                           // Try to get email from backup if user email is missing
@@ -397,23 +429,13 @@ const AccountPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className='block text-sm font-medium text-gray-700 mb-1'>
+                    <label className='block text-sm font-medium text-gray-500 mb-1'>
                       Phone Number
                     </label>
-                    <p className='text-gray-900'>{user?.phone || 'Not provided'}</p>
+                    <p className='text-gray-900 font-medium'>{user?.phone || 'Not provided'}</p>
                   </div>
                 </div>
               )}
-
-              <div className='mt-8 pt-6 border-t'>
-                <Button
-                  onClick={handleLogout}
-                  variant='outline'
-                  className='text-red-600 border-red-300 hover:bg-red-50'
-                >
-                  Sign Out
-                </Button>
-              </div>
             </div>
           </div>
         </div>

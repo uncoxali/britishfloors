@@ -62,21 +62,12 @@ export const useCartStore = create<CartStore>()(
                     let itemPrice = variant.price;
 
                     if (isActuallySample) {
-                        console.log('Looking for sample variant in product options:', product.options);
-                        console.log('Available variants:', product.variants.edges.map(edge => ({
-                            id: edge.node.id,
-                            title: edge.node.title,
-                            selectedOptions: edge.node.selectedOptions
-                        })));
-
                         // Look for sample option in product options
                         const sampleOption = product.options?.find(option =>
                             option.name.toLowerCase().includes('type') ||
                             option.name.toLowerCase().includes('variant') ||
                             option.name.toLowerCase().includes('style')
                         );
-
-                        console.log('Found sample option:', sampleOption);
 
                         if (sampleOption && sampleOption.values.some(value => value.toLowerCase().includes('sample'))) {
                             // Find variant with sample option
@@ -87,19 +78,15 @@ export const useCartStore = create<CartStore>()(
                                 )
                             );
 
-                            console.log('Found sample variant:', sampleVariant);
-
                             if (sampleVariant) {
                                 selectedVariant = sampleVariant.node;
                                 itemPrice = sampleVariant.node.price;
-                                console.log('Using sample variant with price:', itemPrice);
                             }
                         }
 
                         // Always use minVariantPrice for samples to ensure consistent pricing
                         if (product.priceRange?.minVariantPrice) {
                             itemPrice = product.priceRange.minVariantPrice;
-                            console.log('Using minVariantPrice for sample:', itemPrice);
                         }
                     }
 
@@ -114,7 +101,7 @@ export const useCartStore = create<CartStore>()(
                         price: itemPrice,
                         quantity,
                         image: product.images.edges[0]?.node,
-                        availableForSale: selectedVariant.availableForSale,
+                        availableForSale: selectedVariant.availableForSale !== undefined ? selectedVariant.availableForSale : true,
                         isSample: isActuallySample,
                         type: itemType,
                     };
@@ -203,19 +190,25 @@ export const useCartStore = create<CartStore>()(
                     item.variantId &&
                     item.quantity > 0 &&
                     item.price?.amount &&
+                    !isNaN(parseFloat(item.price.amount)) &&
                     parseFloat(item.price.amount) > 0
                 );
 
                 validItems.forEach(item => {
                     totalQuantity += item.quantity;
-                    subtotalAmount = calculateMoney(subtotalAmount, multiplyMoney(item.price.amount, item.quantity));
+                    const itemTotal = multiplyMoney(item.price.amount, item.quantity);
+                    if (!isNaN(parseFloat(itemTotal))) {
+                        subtotalAmount = calculateMoney(subtotalAmount, itemTotal);
+                    }
                     currencyCode = item.price.currencyCode || 'GBP';
                 });
 
                 const { discountAmount } = get();
-                const subtotalWithDiscount = parseFloat(subtotalAmount) - discountAmount;
+                const subtotalNum = parseFloat(subtotalAmount);
+                const discountNum = isNaN(discountAmount) ? 0 : discountAmount;
+                const subtotalWithDiscount = subtotalNum - discountNum;
                 // VAT is already included in UK prices - calculate breakdown for display
-                const totalAmount = subtotalWithDiscount; // Total equals subtotal since VAT is already included
+                const totalAmount = Math.max(0, subtotalWithDiscount); // Total equals subtotal since VAT is already included
 
                 set({
                     totalQuantity,
@@ -226,7 +219,7 @@ export const useCartStore = create<CartStore>()(
                 // Return the calculated values
                 const vatIncluded = totalAmount / 1.2 * 0.2; // Calculate VAT portion for display
                 return {
-                    subtotal: parseFloat(subtotalAmount),
+                    subtotal: subtotalNum,
                     vatIncluded: vatIncluded,
                     total: totalAmount,
                 };

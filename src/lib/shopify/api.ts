@@ -31,15 +31,11 @@ export const shopifyApi = {
         } catch (error) {
             console.error('Error fetching products:', error);
             // Log more detailed error information
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (error && typeof error === 'object' && 'response' in error) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                console.error('Response error:', (error as { response?: any }).response);
+                console.error('Response error:', (error as { response?: unknown }).response);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (error && typeof error === 'object' && 'request' in error) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                console.error('Request error:', (error as { request?: any }).request);
+                console.error('Request error:', (error as { request?: unknown }).request);
             }
             // Return a more graceful fallback instead of throwing
             return null;
@@ -55,15 +51,11 @@ export const shopifyApi = {
         } catch (error) {
             console.error('Error fetching product:', error);
             // Log more detailed error information
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (error && typeof error === 'object' && 'response' in error) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                console.error('Response error:', (error as { response?: any }).response);
+                console.error('Response error:', (error as { response?: unknown }).response);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (error && typeof error === 'object' && 'request' in error) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                console.error('Request error:', (error as { request?: any }).request);
+                console.error('Request error:', (error as { request?: unknown }).request);
             }
             // Return a more graceful fallback instead of throwing
             return { product: null };
@@ -112,20 +104,14 @@ export const shopifyApi = {
         } catch (error) {
             console.error('Error searching products:', error);
             // Log more detailed error information
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (error && typeof error === 'object' && 'response' in error) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                console.error('Response error:', (error as { response?: any }).response);
+                console.error('Response error:', (error as { response?: unknown }).response);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (error && typeof error === 'object' && 'request' in error) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                console.error('Request error:', (error as { request?: any }).request);
+                console.error('Request error:', (error as { request?: unknown }).request);
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             if (error && typeof error === 'object' && 'message' in error) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                console.error('Error message:', (error as { message?: any }).message);
+                console.error('Error message:', (error as { message?: unknown }).message);
             }
             // Return a more graceful fallback instead of throwing
             return null;

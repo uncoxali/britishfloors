@@ -114,7 +114,7 @@ const SearchBar: React.FC = () => {
               value={query}
               onChange={handleSearchChange}
               onFocus={() => query.trim().length >= 2 && setIsSearchOpen(true)}
-              placeholder='Laminate'
+              placeholder='Search for flooring products...'
               className='w-full pl-12 pr-4 py-3 border border-gray-300 bg-white rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 placeholder-gray-400 text-gray-900'
             />
             <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -170,6 +170,8 @@ const SearchBar: React.FC = () => {
                                 width={120}
                                 height={90}
                                 className='w-full h-full object-cover'
+                                priority={false}
+                                loading='lazy'
                               />
                             </div>
                             {/* Sale Badge */}
@@ -183,7 +185,7 @@ const SearchBar: React.FC = () => {
                           {/* Product Info */}
                           <div className='flex-1 min-w-0'>
                             {/* Product Title */}
-                            <h4 className='text-lg font-semibold text-blue-800 mb-2 hover:underline cursor-pointer leading-tight truncate'>
+                            <h4 className='text-lg font-semibold text-blue-800 mb-2 hover:underline cursor-pointer leading-tight line-clamp-2'>
                               {product.title}
                             </h4>
 

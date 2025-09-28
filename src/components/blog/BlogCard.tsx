@@ -16,7 +16,7 @@ const BlogCard: React.FC<BlogCardProps> = ({
 }) => {
   return (
     <Link href={`/blogs/${article.handle}`} className={`group block ${className}`}>
-      <div className='relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-lg transition-all duration-300 h-48'>
+      <div className='relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-lg transition-all duration-300 h-[300px]'>
         <Image
           src={article.image?.url || '/images/sample-product.png'}
           alt={article.title}
@@ -28,8 +28,8 @@ const BlogCard: React.FC<BlogCardProps> = ({
         {/* Dark overlay */}
         <div className='absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors duration-300'></div>
 
-        {/* Text content at bottom */}
-        <div className='absolute inset-x-0 bottom-0 p-4 text-white'>
+        {/* Text content at bottom center */}
+        <div className='absolute inset-x-0 bottom-0 p-4 text-white text-center'>
           <h3 className='font-semibold text-base leading-tight mb-1'>{article.title}</h3>
 
           {article.publishedAt && (
