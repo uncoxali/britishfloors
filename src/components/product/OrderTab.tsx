@@ -1,6 +1,6 @@
 import React from 'react';
 import { OrderState, ProductCalculations } from '@/types/product';
-import { formatCurrency, m2ToFt } from '@/utils/productUtils';
+import { formatCurrency } from '@/utils/productUtils';
 
 interface OrderTabProps {
   orderState: OrderState;
@@ -21,10 +21,14 @@ const OrderTab: React.FC<OrderTabProps> = ({
   const { totalPriceOrder } = calculations;
 
   // Get unit symbol for display
-  const unitSymbol = unit === 'm2' ? 'm²' : 'ft²';
+  const areaUnitSymbol = unit === 'm2' ? 'm²' : 'ft²';
   
   // Convert pack size based on selected unit
-  const convertedPackSize = unit === 'm2' ? packSize : m2ToFt(packSize);
+  // For meters: display as square meters
+  // For feet: convert to linear feet using the project specification formula
+  const convertedPackSize = unit === 'm2' ? 
+    packSize : 
+    (Math.sqrt(packSize / 0.092903)) * 1.227;
 
   const handleQuantityChange = (newQuantity: number) => {
     onUpdateOrder({ quantity: Math.max(1, newQuantity) });
@@ -61,22 +65,22 @@ const OrderTab: React.FC<OrderTabProps> = ({
               </button>
             </div>
           </div>
+
+          <div className='text-xs text-amber-700'>
+            <p>Adjust the quantity of packs you need for your project.</p>
+          </div>
         </div>
       </div>
 
-      {/* Right side - Total */}
+      {/* Right side - Order summary */}
       <div className='p-4 border-l border-amber-300'>
         <div className='space-y-2'>
-          <p className='font-medium text-amber-800 text-lg'>Total:</p>
+          <p className='font-medium text-amber-800 text-lg'>Order Summary:</p>
           <p className='text-2xl font-bold text-amber-900'>{formatCurrency(totalPriceOrder)}</p>
           <div className='text-sm text-amber-700 space-y-1'>
+            <div>Quantity: {quantity} packs</div>
             <div>
-              Total ({unitSymbol}): {(quantity * packSize).toFixed(2)}
-            </div>
-            <div>Total Packs: {quantity}</div>
-            <div>
-              (Each pack contains {convertedPackSize.toFixed(2)}
-              {unitSymbol})
+              (Each pack contains {convertedPackSize.toFixed(2)}{unit === 'm2' ? ' m²' : ' ft'})
             </div>
           </div>
         </div>
