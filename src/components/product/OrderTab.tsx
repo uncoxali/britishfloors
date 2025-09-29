@@ -22,13 +22,11 @@ const OrderTab: React.FC<OrderTabProps> = ({
 
   // Get unit symbol for display
   const areaUnitSymbol = unit === 'm2' ? 'm²' : 'ft²';
-  
+
   // Convert pack size based on selected unit
   // For meters: display as square meters
   // For feet: convert to linear feet using the project specification formula
-  const convertedPackSize = unit === 'm2' ? 
-    packSize : 
-    (Math.sqrt(packSize / 0.092903)) * 1.227;
+  const convertedPackSize = unit === 'm2' ? packSize : Math.sqrt(packSize / 0.092903) * 1.227;
 
   const handleQuantityChange = (newQuantity: number) => {
     onUpdateOrder({ quantity: Math.max(1, newQuantity) });
@@ -80,7 +78,8 @@ const OrderTab: React.FC<OrderTabProps> = ({
           <div className='text-sm text-amber-700 space-y-1'>
             <div>Quantity: {quantity} packs</div>
             <div>
-              (Each pack contains {convertedPackSize.toFixed(2)}{unit === 'm2' ? ' m²' : ' ft'})
+              (Each pack contains {convertedPackSize.toFixed(2)}
+              {unit === 'm2' ? ' m²' : ' ft'})
             </div>
           </div>
         </div>

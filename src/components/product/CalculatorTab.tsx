@@ -22,13 +22,11 @@ const CalculatorTab: React.FC<CalculatorTabProps> = ({
   // Determine unit symbols based on selected unit
   const unitSymbol = unit === 'm2' ? 'm' : 'ft';
   const areaUnitSymbol = unit === 'm2' ? 'm²' : 'ft²';
-  
+
   // Convert pack size based on selected unit
   // For meters: display as square meters
   // For feet: convert to linear feet using the project specification formula
-  const convertedPackSize = unit === 'm2' ? 
-    packSize : 
-    (Math.sqrt(packSize / 0.092903)) * 1.227;
+  const convertedPackSize = unit === 'm2' ? packSize : Math.sqrt(packSize / 0.092903) * 1.227;
 
   return (
     <div
@@ -163,7 +161,8 @@ const CalculatorTab: React.FC<CalculatorTabProps> = ({
             </div>
             <div>Total Packs: {packsNeeded}</div>
             <div>
-              (Each pack contains {convertedPackSize.toFixed(2)}{unit === 'm2' ? ' m²' : ' ft'})
+              (Each pack contains {convertedPackSize.toFixed(2)}
+              {unit === 'm2' ? ' m²' : ' ft'})
             </div>
             {wastagePercent > 0 && <div>Wastage: {wastagePercent}%</div>}
           </div>
