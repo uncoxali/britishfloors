@@ -33,8 +33,8 @@ export const useCartStore = create<CartStore>()(
         (set, get) => ({
             items: [],
             totalQuantity: 0,
-            subtotal: { amount: '0.00', currencyCode: 'USD' },
-            total: { amount: '0.00', currencyCode: 'USD' },
+            subtotal: { amount: '0.00', currencyCode: 'GBP' },
+            total: { amount: '0.00', currencyCode: 'GBP' },
             discountCode: undefined,
             discountAmount: 0,
 
@@ -145,8 +145,8 @@ export const useCartStore = create<CartStore>()(
                 set({
                     items: [],
                     totalQuantity: 0,
-                    subtotal: { amount: '0.00', currencyCode: 'USD' },
-                    total: { amount: '0.00', currencyCode: 'USD' },
+                    subtotal: { amount: '0.00', currencyCode: 'GBP' },
+                    total: { amount: '0.00', currencyCode: 'GBP' },
                     discountCode: undefined,
                     discountAmount: 0,
                 });
@@ -270,4 +270,4 @@ export const useCartStore = create<CartStore>()(
             partialize: (state) => ({ items: state.items }),
         }
     )
-); 
+);

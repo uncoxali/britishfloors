@@ -25,8 +25,8 @@ const OrderTab: React.FC<OrderTabProps> = ({
 
   // Convert pack size based on selected unit
   // For meters: display as square meters
-  // For feet: convert to linear feet using the project specification formula
-  const convertedPackSize = unit === 'm2' ? packSize : Math.sqrt(packSize / 0.092903) * 1.227;
+  // For feet: convert square meters to square feet
+  const convertedPackSize = unit === 'm2' ? packSize : m2ToFt(packSize);
 
   const handleQuantityChange = (newQuantity: number) => {
     onUpdateOrder({ quantity: Math.max(1, newQuantity) });
@@ -79,7 +79,7 @@ const OrderTab: React.FC<OrderTabProps> = ({
             <div>Quantity: {quantity} packs</div>
             <div>
               (Each pack contains {convertedPackSize.toFixed(2)}
-              {unit === 'm2' ? ' m²' : ' ft'})
+              {unit === 'm2' ? ' m²' : ' ft²'})
             </div>
           </div>
         </div>

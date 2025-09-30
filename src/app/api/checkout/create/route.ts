@@ -141,6 +141,10 @@ export async function POST(request: NextRequest) {
                                             }
                                         }
                                     }
+                                    attributes {
+                                        key
+                                        value
+                                    }
                                 }
                             }
                         }
@@ -163,7 +167,18 @@ export async function POST(request: NextRequest) {
             price: { amount: string; currencyCode: string };
         }) => ({
             merchandiseId: item.variantId,
-            quantity: item.quantity
+            quantity: item.quantity,
+            // Add custom attributes to store the calculated price
+            attributes: [
+                {
+                    key: "_calculated_price",
+                    value: item.price.amount
+                },
+                {
+                    key: "_calculated_currency",
+                    value: item.price.currencyCode
+                }
+            ]
         }));
 
         console.log('Creating Shopify cart with:', {
@@ -259,4 +274,4 @@ export async function POST(request: NextRequest) {
             { status: 500 }
         );
     }
-} 
+}
