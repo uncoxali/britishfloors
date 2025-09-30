@@ -27,8 +27,8 @@ export default function ConversionTest() {
   }, []);
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Unit Conversion Tests</h1>
+    <div className='p-8'>
+      <h1 className='text-2xl font-bold mb-4'>Unit Conversion Tests</h1>
       <p>Check the browser console for test results.</p>
     </div>
   );
