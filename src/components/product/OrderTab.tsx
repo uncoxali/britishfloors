@@ -1,6 +1,6 @@
 import React from 'react';
 import { OrderState, ProductCalculations } from '@/types/product';
-import { formatCurrency } from '@/utils/productUtils';
+import { formatCurrency, m2ToFt } from '@/utils/productUtils';
 
 interface OrderTabProps {
   orderState: OrderState;

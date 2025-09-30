@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CalculationState, OrderState, ProductCalculations } from '@/types/product';
-import { ftToM2, calculateAreaWithWastage, calculatePacksNeeded } from '@/utils/productUtils';
+import { ftToM2, m2ToFt, calculateAreaWithWastage, calculatePacksNeeded } from '@/utils/productUtils';
 
 export const useCalculator = (packSize: number, pricePerM2: number, adminCostPerPack?: number | null) => {
   const [calculationState, setCalculationState] = useState<CalculationState>({
@@ -33,10 +33,21 @@ export const useCalculator = (packSize: number, pricePerM2: number, adminCostPer
     })();
 
     const baseArea = calculationState.calcMethod === 'area' ? areaFromArea : areaFromDims;
+
+    // Convert to square meters for internal calculations
     const areaInM2 = calculationState.unit === 'm2' ? baseArea : ftToM2(baseArea);
-    const areaWithWastage = calculateAreaWithWastage(areaInM2, calculationState.wastagePercent);
-    const packsNeeded = calculatePacksNeeded(areaWithWastage, packSize); // round up
+
+    // Calculate with wastage (in square meters)
+    const areaWithWastageInM2 = calculateAreaWithWastage(areaInM2, calculationState.wastagePercent);
+
+    // Calculate packs needed (based on square meters)
+    const packsNeeded = calculatePacksNeeded(areaWithWastageInM2, packSize);
+
+    // Total area covered (in square meters)
     const totalAreaCovered = packsNeeded * packSize;
+
+    // Convert displayed area with wastage to the selected unit
+    const areaWithWastage = calculationState.unit === 'm2' ? areaWithWastageInM2 : m2ToFt(areaWithWastageInM2);
 
     // Use admin cost per pack if available, otherwise calculate from price per m2
     const pricePerPack = adminCostPerPack || (packSize * pricePerM2);
