@@ -8,13 +8,13 @@ import { ShopifyProduct } from '@/lib/types/shopify';
 import { useCartStore } from '@/store/cart';
 import { useCartDrawerStore } from '@/store/cartDrawer';
 
-interface ProductCardProps {
+interface SpecialOfferProductCardProps {
   product: ShopifyProduct;
   showOrderSample?: boolean;
   redirectToProducts?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({
+const SpecialOfferProductCard: React.FC<SpecialOfferProductCardProps> = ({
   product,
   showOrderSample = true,
   redirectToProducts = false,
@@ -266,4 +266,4 @@ const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-export default ProductCard;
+export default SpecialOfferProductCard;

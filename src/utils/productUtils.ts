@@ -255,6 +255,13 @@ export const m2ToFt = (area: number): number => {
 };
 
 /**
+ * Converts feet to meters
+ */
+export const feetToMeters = (feet: number): number => {
+  return feet * 0.3048;
+};
+
+/**
  * Calculates area with wastage percentage
  */
 export const calculateAreaWithWastage = (baseArea: number, wastagePercent: number): number => {

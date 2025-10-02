@@ -69,6 +69,7 @@ export const useCartStore = create<CartStore>()(
                             option.name.toLowerCase().includes('style')
                         );
 
+                        let sampleVariantFound = false;
                         if (sampleOption && sampleOption.values.some(value => value.toLowerCase().includes('sample'))) {
                             // Find variant with sample option
                             const sampleVariant = product.variants.edges.find(edge =>
@@ -81,11 +82,12 @@ export const useCartStore = create<CartStore>()(
                             if (sampleVariant) {
                                 selectedVariant = sampleVariant.node;
                                 itemPrice = sampleVariant.node.price;
+                                sampleVariantFound = true;
                             }
                         }
 
-                        // Always use minVariantPrice for samples to ensure consistent pricing
-                        if (product.priceRange?.minVariantPrice) {
+                        // Only use minVariantPrice for samples if we couldn't find a specific sample variant
+                        if (!sampleVariantFound && product.priceRange?.minVariantPrice) {
                             itemPrice = product.priceRange.minVariantPrice;
                         }
                     }

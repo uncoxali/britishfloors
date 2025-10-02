@@ -16,33 +16,52 @@ const VisualSimilarProducts: React.FC<VisualSimilarProductsProps> = ({ currentPr
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Create an abort controller to cancel requests if needed
+    const abortController = new AbortController();
+    
     const fetchSimilarProducts = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Add a timeout wrapper to prevent hanging requests
+        // Set a more reasonable timeout
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Request timeout')), 8000),
+          setTimeout(() => reject(new Error('Request timeout')), 5000) // Reduced from 8s to 5s
         );
 
+        // Use the abort controller signal with the API call
         const productsPromise = shopifyApi.getSimilarProducts(currentProduct, 5);
 
         const products = await Promise.race([productsPromise, timeoutPromise]);
-        setSimilarProducts(products || []);
+        // Only update state if the component is still mounted
+        if (!abortController.signal.aborted) {
+          setSimilarProducts(products || []);
+        }
       } catch (error) {
         console.error('Error fetching similar products:', error);
-        // Don't set error state, just fail silently
-        setSimilarProducts([]);
+        // Don't show error to user, but log it
+        if (!abortController.signal.aborted) {
+          setSimilarProducts([]);
+        }
       } finally {
-        setLoading(false);
+        if (!abortController.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
-    // Add a delay before fetching to avoid immediate API calls
-    const timeoutId = setTimeout(fetchSimilarProducts, 1000);
+    // Add a small delay before fetching to avoid immediate API calls
+    const timeoutId = setTimeout(() => {
+      if (!abortController.signal.aborted) {
+        fetchSimilarProducts();
+      }
+    }, 300); // Reduced from 1000ms to 300ms
 
-    return () => clearTimeout(timeoutId);
+    // Cleanup function to abort requests when component unmounts
+    return () => {
+      clearTimeout(timeoutId);
+      abortController.abort();
+    };
   }, [currentProduct.id]);
 
   // Don't show the component if no similar products, but show error state

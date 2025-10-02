@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { CalculationState, OrderState, ProductCalculations } from '@/types/product';
-import { ftToM2, m2ToFt, calculateAreaWithWastage, calculatePacksNeeded } from '@/utils/productUtils';
+import { ftToM2, m2ToFt, feetToMeters, calculateAreaWithWastage, calculatePacksNeeded } from '@/utils/productUtils';
 
 export const useCalculator = (packSize: number, pricePerM2: number, adminCostPerPack?: number | null) => {
   const [calculationState, setCalculationState] = useState<CalculationState>({
@@ -29,13 +29,25 @@ export const useCalculator = (packSize: number, pricePerM2: number, adminCostPer
     const areaFromDims = (() => {
       const w = Number(calculationState.width) || 0;
       const l = Number(calculationState.length) || 0;
-      return w * l;
+
+      if (calculationState.unit === 'm2') {
+        // Width and length are in meters, multiply directly for square meters
+        return w * l;
+      } else {
+        // Width and length are in feet, convert each to meters first, then multiply
+        const wInMeters = feetToMeters(w);
+        const lInMeters = feetToMeters(l);
+        return wInMeters * lInMeters;
+      }
     })();
 
     const baseArea = calculationState.calcMethod === 'area' ? areaFromArea : areaFromDims;
 
     // Convert to square meters for internal calculations
-    const areaInM2 = calculationState.unit === 'm2' ? baseArea : ftToM2(baseArea);
+    // For area input: convert if needed, for dimensions: already converted above
+    const areaInM2 = calculationState.calcMethod === 'area'
+      ? (calculationState.unit === 'm2' ? baseArea : ftToM2(baseArea))
+      : baseArea; // areaFromDims is already in square meters
 
     // Calculate with wastage (in square meters)
     const areaWithWastageInM2 = calculateAreaWithWastage(areaInM2, calculationState.wastagePercent);

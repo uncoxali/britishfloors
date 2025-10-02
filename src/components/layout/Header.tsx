@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cart';
@@ -10,8 +10,13 @@ import SearchBar from '@/components/ui/SearchBar';
 import ClientOnly from '@/components/ui/ClientOnly';
 import CartDrawer from '@/components/cart/CartDrawer';
 
-// TODO: Replace with actual API data
-// This will be populated from API calls later
+interface MenuItem {
+  id: string;
+  name: string;
+  slug: string;
+  href?: string;
+  hasMegaMenu: boolean;
+}
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

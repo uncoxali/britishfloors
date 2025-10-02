@@ -97,12 +97,24 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
 
   // Initialize with default values for hooks that need product data
   const defaultPackSize = 1.92;
+
+  // Use perPackVariant price if available, otherwise fallback to default
   const defaultPricePerM2 = product.priceRange?.minVariantPrice
     ? parseFloat(product.priceRange.minVariantPrice.amount)
     : 0;
 
+  // Get the per pack variant price for calculator
+  const perPackVariantForCalculator = product.variants?.edges?.find((edge) =>
+    edge.node.title.toLowerCase().includes('per pack'),
+  )?.node;
+
+  // Use per pack variant price for calculator if available, otherwise calculate
+  const pricePerPackForCalculator = perPackVariantForCalculator
+    ? parseFloat(perPackVariantForCalculator.price.amount)
+    : defaultPackSize * defaultPricePerM2;
+
   const { calculationState, orderState, calculations, updateCalculationState, updateOrderState } =
-    useCalculator(defaultPackSize, defaultPricePerM2, adminCostPerItem);
+    useCalculator(defaultPackSize, defaultPricePerM2, pricePerPackForCalculator);
 
   const {
     handleAddToCartWithQuantity: originalHandleAddToCart,
@@ -116,7 +128,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
   const { isProductInCart } = useCartStore();
   const isSampleInCart = isProductInCart(product.id, true);
 
-  // Custom add to cart function that uses calculated pricing
+  // Custom add to cart function that uses per pack variant pricing
   const handleAddToCartWithCalculatedPrice = useCallback(
     async (quantity: number) => {
       if (isInCart) {
@@ -128,8 +140,10 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
       try {
         const firstVariant = product.variants?.edges[0]?.node;
         if (firstVariant) {
-          // Calculate the correct price per pack based on admin cost or pack calculation
-          const pricePerPack = adminCostPerItem || defaultPackSize * defaultPricePerM2;
+          // Use per pack variant price if available, otherwise calculate
+          const pricePerPack = perPackVariantForCalculator
+            ? parseFloat(perPackVariantForCalculator.price.amount)
+            : adminCostPerItem || defaultPackSize * defaultPricePerM2;
 
           // Create a modified variant with the calculated price
           const modifiedVariant = {
@@ -156,7 +170,14 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
         console.error('Error adding to cart with calculated price:', error);
       }
     },
-    [isInCart, product, adminCostPerItem, defaultPackSize, defaultPricePerM2],
+    [
+      isInCart,
+      product,
+      perPackVariantForCalculator,
+      adminCostPerItem,
+      defaultPackSize,
+      defaultPricePerM2,
+    ],
   );
 
   // Memoized product data extraction with improved error handling
@@ -255,6 +276,19 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
         ? parseFloat(compareAtPrice.amount) * packSize
         : costPerPack;
 
+      // Extract variant prices
+      const mainVariant = product.variants?.edges?.find(
+        (edge) => edge.node.title.toLowerCase() === 'main',
+      )?.node;
+
+      const perPackVariant = product.variants?.edges?.find((edge) =>
+        edge.node.title.toLowerCase().includes('per pack'),
+      )?.node;
+
+      const sampleVariant = product.variants?.edges?.find((edge) =>
+        edge.node.title.toLowerCase().includes('sample'),
+      )?.node;
+
       return {
         images,
         packSize,
@@ -265,6 +299,9 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
         discountPercentage,
         compareAtPrice,
         maxPrice,
+        mainVariant,
+        perPackVariant,
+        sampleVariant,
       };
     } catch (error) {
       console.error('Error extracting product data:', error);
@@ -302,6 +339,9 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
     discountPercentage,
     compareAtPrice,
     maxPrice,
+    mainVariant,
+    perPackVariant,
+    sampleVariant,
   } = productData;
 
   // Get appropriate quantity based on active tab
@@ -380,9 +420,11 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
           {/* Price */}
           <div>
             <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2'>
-              <span className='text-lg sm:text-xl font-bold text-gray-900'>
-                NOW: £{maxPrice.amount} per m²
-              </span>
+              {mainVariant && (
+                <span className='text-lg sm:text-xl font-bold text-gray-900'>
+                  NOW: £{mainVariant.price.amount} per m²
+                </span>
+              )}
               {hasDiscount && compareAtPrice && (
                 <div className='flex items-center gap-2'>
                   <span className='text-red-600 font-medium text-sm sm:text-base'>
@@ -398,16 +440,11 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
             {/* Cost per item from Admin API */}
             {(adminCostPerItem || isCostLoading) && (
               <div className='mt-2'>
-                {isCostLoading ? (
-                  <div className='flex items-center gap-2'>
-                    <div className='w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin'></div>
-                    <span className='text-sm text-gray-500'>Loading inventory cost...</span>
-                  </div>
-                ) : (
+                {perPackVariant && (
                   <div className='mt-1'>
                     <span className='text-lg font-semibold text-gray-800'>
                       {currencyCode === 'GBP' ? '£' : currencyCode || '£'}
-                      {adminCostPerItem?.toFixed(2)} per pack
+                      {perPackVariant.price.amount} per pack
                     </span>
                   </div>
                 )}
@@ -516,7 +553,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
                   strokeLinecap='round'
                   strokeLinejoin='round'
                   strokeWidth={2}
-                  d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 003 2z'
+                  d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-3 2v12a2 2 0 003 2z'
                 />
               </svg>
             }

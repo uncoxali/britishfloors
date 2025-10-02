@@ -7,6 +7,7 @@ import { shopifyApi } from '@/lib/shopify/api';
 import { ShopifyProduct, ShopifyArticle, ShopifyCollection } from '@/lib/types/shopify';
 import ProductCard from '@/components/product/ProductCard';
 import BlogsSection from '@/components/blog/BlogsSection';
+import SpecialOffersSlider from '@/components/product/SpecialOffersSlider';
 
 export default async function HomePage() {
   let products: ShopifyProduct[] = [];
@@ -47,7 +48,7 @@ export default async function HomePage() {
     <Layout useContainer={false}>
       {/* Hero Section - Image Only */}
       <section
-        className='relative h-[90vh] min-h-[500px] bg-cover bg-center bg-no-repeat'
+        className='relative h-[60vh] md:h-[90vh] min-h-[400px] md:min-h-[500px] bg-cover bg-center bg-no-repeat'
         style={{
           backgroundImage: "url('/images/hero-img.png')",
         }}
@@ -101,47 +102,41 @@ export default async function HomePage() {
               )}
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Special Offers Section */}
-          <div className='bg-[#1A4685] rounded-2xl p-3 relative overflow-hidden'>
-            <div className='relative z-10'>
-              <div className='flex flex-col lg:flex-row items-center gap-4'>
-                {/* Special Offers Image */}
-                <div className='lg:w-[10%] 2xl:w-[30%] flex items-center justify-center h-full'>
-                  <Image
-                    src='/images/product-pers.png'
-                    alt='Special Offers'
-                    width={400}
-                    height={300}
-                    className='w-auto h-auto max-w-full'
-                    priority={false}
-                    loading='lazy'
-                  />
-                </div>
-
-                {/* Products Grid */}
-                <div className='lg:w-4/4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
-                  {products.length > 0
-                    ? products
-                        .slice(0, 4)
-                        .map((product) => (
-                          <ProductCard
-                            key={product.id}
-                            product={product}
-                            showOrderSample={true}
-                            redirectToProducts={false}
-                          />
-                        ))
-                    : null}
+      {/* Special Offers Section */}
+      <section className='py-5'>
+        <div className='md:max-w-[110rem] w-full mx-auto lg:px-8'>
+          {products.length > 0 ? (
+            <SpecialOffersSlider products={products.slice(0, 4)} />
+          ) : (
+            <div className='bg-[#1A4685] rounded-2xl p-3 relative overflow-hidden'>
+              <div className='relative z-10'>
+                <div className='flex flex-col lg:flex-row items-center gap-4'>
+                  <div className='lg:w-[10%] 2xl:w-[30%] flex items-center justify-center h-full'>
+                    <Image
+                      src='/images/product-pers.png'
+                      alt='Special Offers'
+                      width={400}
+                      height={300}
+                      className='w-auto h-auto max-w-full'
+                      priority={false}
+                      loading='lazy'
+                    />
+                  </div>
+                  <div className='lg:w-4/4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+                    {[...Array(4)].map((_, index) => (
+                      <div key={index} className='bg-white/20 rounded-2xl h-64 animate-pulse'></div>
+                    ))}
+                  </div>
                 </div>
               </div>
+              <div className='absolute top-0 right-0 w-64 h-64 opacity-10'>
+                <div className='w-full h-full bg-gradient-to-br from-white to-transparent rounded-full'></div>
+              </div>
             </div>
-
-            {/* Background Pattern */}
-            <div className='absolute top-0 right-0 w-64 h-64 opacity-10'>
-              <div className='w-full h-full bg-gradient-to-br from-white to-transparent rounded-full'></div>
-            </div>
-          </div>
+          )}
         </div>
       </section>
 

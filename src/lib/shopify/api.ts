@@ -20,13 +20,23 @@ import {
     ShopifyArticle,
 } from '@/lib/types/shopify';
 
+// Helper function to add timeout to promises
+const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+    return Promise.race([
+        promise,
+        new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Request timeout after ${timeoutMs}ms`)), timeoutMs)
+        )
+    ]);
+};
+
 export const shopifyApi = {
     // Get products with pagination
     getProducts: async (first: number = 12, after?: string): Promise<ShopifyProductsResponse | null> => {
         try {
             // Pass the published status filter as part of the variables
             const variables = { first, after, query: "published_status:published" };
-            const data = await shopifyClient.request(GET_PRODUCTS, variables);
+            const data = await withTimeout(shopifyClient.request(GET_PRODUCTS, variables), 5000);
             return data as ShopifyProductsResponse;
         } catch (error) {
             console.error('Error fetching products:', error);
@@ -46,7 +56,7 @@ export const shopifyApi = {
     getProductByHandle: async (handle: string): Promise<{ product: ShopifyProduct | null }> => {
         try {
             const variables = { handle };
-            const data = await shopifyClient.request(GET_PRODUCT_BY_HANDLE, variables);
+            const data = await withTimeout(shopifyClient.request(GET_PRODUCT_BY_HANDLE, variables), 5000);
             return data as { product: ShopifyProduct };
         } catch (error) {
             console.error('Error fetching product:', error);
@@ -66,7 +76,7 @@ export const shopifyApi = {
     getCollections: async (first: number = 10): Promise<ShopifyCollectionsResponse | null> => {
         try {
             const variables = { first };
-            const data = await shopifyClient.request(GET_COLLECTIONS, variables);
+            const data = await withTimeout(shopifyClient.request(GET_COLLECTIONS, variables), 5000);
             return data as ShopifyCollectionsResponse;
         } catch (error) {
             console.error('Error fetching collections:', error);
@@ -82,7 +92,7 @@ export const shopifyApi = {
     ): Promise<{ collection: ShopifyCollection | null }> => {
         try {
             const variables = { handle, first, after };
-            const data = await shopifyClient.request(GET_COLLECTION_BY_HANDLE, variables) as { collection: ShopifyCollection };
+            const data = await withTimeout(shopifyClient.request(GET_COLLECTION_BY_HANDLE, variables), 5000);
             return data as { collection: ShopifyCollection };
         } catch (error) {
             console.error('Error fetching collection:', error);
@@ -98,7 +108,7 @@ export const shopifyApi = {
             const combinedQuery = `${query} AND published_status:published`;
             const variables = { query: combinedQuery, first, after };
             console.log('GraphQL variables:', variables);
-            const data = await shopifyClient.request(SEARCH_PRODUCTS, variables);
+            const data = await withTimeout(shopifyClient.request(SEARCH_PRODUCTS, variables), 5000);
             console.log('Search products response:', data);
             return data as ShopifyProductsResponse;
         } catch (error) {
@@ -122,7 +132,7 @@ export const shopifyApi = {
     getBlogs: async (first: number = 10, after?: string): Promise<ShopifyBlogsResponse | null> => {
         try {
             const variables = { first, after };
-            const data = await shopifyClient.request(GET_BLOGS, variables);
+            const data = await withTimeout(shopifyClient.request(GET_BLOGS, variables), 5000);
             return data as ShopifyBlogsResponse;
         } catch (error) {
             console.error('Error fetching blogs:', error);
@@ -135,7 +145,7 @@ export const shopifyApi = {
     getArticles: async (first: number = 10, after?: string): Promise<ShopifyArticlesResponse | null> => {
         try {
             const variables = { first, after };
-            const data = await shopifyClient.request(GET_ARTICLES, variables);
+            const data = await withTimeout(shopifyClient.request(GET_ARTICLES, variables), 5000);
             return data as ShopifyArticlesResponse;
         } catch (error) {
             console.error('Error fetching articles:', error);
@@ -152,7 +162,7 @@ export const shopifyApi = {
     ): Promise<{ blog: ShopifyBlog | null }> => {
         try {
             const variables = { handle, first, after };
-            const data = await shopifyClient.request(GET_BLOG_BY_HANDLE, variables);
+            const data = await withTimeout(shopifyClient.request(GET_BLOG_BY_HANDLE, variables), 5000);
             return data as { blog: ShopifyBlog };
         } catch (error) {
             console.error('Error fetching blog:', error);
@@ -190,7 +200,7 @@ export const shopifyApi = {
     getArticlesWithContent: async (first: number = 10, after?: string): Promise<ShopifyArticlesResponse> => {
         try {
             const variables = { first, after };
-            const data = await shopifyClient.request(GET_ARTICLES, variables);
+            const data = await withTimeout(shopifyClient.request(GET_ARTICLES, variables), 5000);
             return data as ShopifyArticlesResponse;
         } catch (error) {
             console.error('Error fetching articles with content:', error);
@@ -317,4 +327,4 @@ export const shopifyApi = {
             return [];
         }
     },
-}; 
+};
