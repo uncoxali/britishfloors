@@ -138,20 +138,96 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
       }
 
       try {
-        const firstVariant = product.variants?.edges[0]?.node;
-        if (firstVariant) {
+        // Use per pack variant if available, otherwise use main variant
+        const perPackVariant = product.variants?.edges?.find((edge) =>
+          edge.node.title.toLowerCase().includes('per pack'),
+        )?.node;
+
+        const mainVariant =
+          product.variants?.edges?.find((edge) => edge.node.title.toLowerCase() === 'main')?.node ||
+          product.variants?.edges[0]?.node;
+
+        // Calculate pack size directly in the function
+        const getPackSize = (): number => {
+          const defaultPackSize = 1.92;
+
+          // Try dimensions first
+          if (product.dimensions) {
+            const dimensionSources = [
+              product.dimensions.reference,
+              ...(product.dimensions.references?.nodes || []),
+            ].filter(Boolean);
+
+            for (const source of dimensionSources) {
+              if (source?.fields) {
+                const packSizeField = source.fields.find((field) => field.key === 'pack_size');
+                if (packSizeField?.value) {
+                  const numValue = extractNumericValue(packSizeField.value);
+                  if (numValue && numValue > 0) return numValue;
+                }
+              }
+            }
+          }
+
+          // Try specifications as fallback
+          if (product.specifications) {
+            const specSources = [
+              product.specifications.reference,
+              ...(product.specifications.references?.nodes || []),
+            ].filter(Boolean);
+
+            for (const source of specSources) {
+              if (source?.fields) {
+                const packSizeField = source.fields.find((field) => field.key === 'pack_size');
+                if (packSizeField?.value) {
+                  const numValue = extractNumericValue(packSizeField.value);
+                  if (numValue && numValue > 0) return numValue;
+                }
+              }
+            }
+          }
+
+          // Try metafields as last resort
+          if (product.metafields) {
+            const packSizeMetafield = product.metafields.find(
+              (field) => field.key === 'pack_size' || field.key === 'packSize',
+            );
+            if (packSizeMetafield?.value) {
+              const numValue = extractNumericValue(packSizeMetafield.value);
+              if (numValue && numValue > 0) return numValue;
+            }
+          }
+
+          return defaultPackSize;
+        };
+
+        const packSize = getPackSize();
+
+        if (perPackVariant || mainVariant) {
           // Use per pack variant price if available, otherwise calculate
-          const pricePerPack = perPackVariantForCalculator
-            ? parseFloat(perPackVariantForCalculator.price.amount)
-            : adminCostPerItem || defaultPackSize * defaultPricePerM2;
+          const pricePerPack = perPackVariant
+            ? parseFloat(perPackVariant.price.amount)
+            : adminCostPerItem || packSize * defaultPricePerM2;
 
           // Create a modified variant with the calculated price
+          const variantToUse = perPackVariant || mainVariant;
           const modifiedVariant = {
-            ...firstVariant,
+            ...variantToUse,
             price: {
               amount: pricePerPack.toFixed(2),
-              currencyCode: firstVariant.price.currencyCode || 'GBP',
+              currencyCode: variantToUse.price.currencyCode || 'GBP',
             },
+            // Add a custom attribute to indicate this is a per pack price
+            customAttributes: [
+              {
+                key: '_is_per_pack_price',
+                value: 'true',
+              },
+              {
+                key: '_pack_size',
+                value: packSize.toString(),
+              },
+            ],
           };
 
           // Add item with calculated price
@@ -170,14 +246,7 @@ const ProductDetailModern: React.FC<ProductDetailModernProps> = ({ product }) =>
         console.error('Error adding to cart with calculated price:', error);
       }
     },
-    [
-      isInCart,
-      product,
-      perPackVariantForCalculator,
-      adminCostPerItem,
-      defaultPackSize,
-      defaultPricePerM2,
-    ],
+    [isInCart, product, adminCostPerItem, defaultPackSize, defaultPricePerM2],
   );
 
   // Memoized product data extraction with improved error handling

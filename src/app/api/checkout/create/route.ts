@@ -165,11 +165,10 @@ export async function POST(request: NextRequest) {
             title: string;
             variantTitle: string;
             price: { amount: string; currencyCode: string };
-        }) => ({
-            merchandiseId: item.variantId,
-            quantity: item.quantity,
-            // Add custom attributes to store the calculated price
-            attributes: [
+            customAttributes?: Array<{ key: string; value: string }>;
+        }) => {
+            // Start with the calculated price attributes
+            const attributes = [
                 {
                     key: "_calculated_price",
                     value: item.price.amount
@@ -178,8 +177,19 @@ export async function POST(request: NextRequest) {
                     key: "_calculated_currency",
                     value: item.price.currencyCode
                 }
-            ]
-        }));
+            ];
+
+            // Add any custom attributes from the item
+            if (item.customAttributes && Array.isArray(item.customAttributes)) {
+                attributes.push(...item.customAttributes);
+            }
+
+            return {
+                merchandiseId: item.variantId,
+                quantity: item.quantity,
+                attributes
+            };
+        });
 
         console.log('Creating Shopify cart with:', {
             storeDomain: SHOPIFY_STORE_DOMAIN,
