@@ -176,13 +176,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
         <div className='flex-1'>
           {/* Product Title - Blue, two lines */}
           <Link href={`/products/${product.handle}`}>
-            <h3 className='text-sm font-semibold text-blue-900 mb-1.5 leading-tight text-center line-clamp-2'>
+            <h3 className='text-lg font-bold text-blue-900 mb-1.5 leading-tight text-center line-clamp-2'>
               {product.title}
             </h3>
           </Link>
 
           {/* Divider Line */}
-          <div className='w-full h-px bg-gray-300 mb-1.5'></div>
+          <div className='w-full h-px bg-gray-500 mb-1.5'></div>
 
           {/* Specifications - Single line format */}
           <div className='text-xs text-gray-600 mb-2 text-center'>
@@ -201,8 +201,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 </span>
               </div>
             )}
-            <div className='text-base font-bold text-gray-700'>
-              £{price.toFixed(2)} <span className='text-xs'>m2</span>
+            <div className='text-lg font-bold text-gray-500'>
+              £{price.toFixed(2)} <span className='text-lg'>m2</span>
             </div>
           </div>
 
@@ -211,7 +211,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <button
               onClick={handleOrderSample}
               disabled={isLoading}
-              className={`py-1.5 px-2.5 xl:py-2 xl:px-3 rounded-lg text-xs font-bold transition-colors ${
+              className={`py-1.5 px-2.5 xl:py-2 xl:px-3 rounded-full text-xs font-bold transition-colors ${
                 isLoading
                   ? 'bg-gray-400 cursor-not-allowed'
                   : isSampleInCart
