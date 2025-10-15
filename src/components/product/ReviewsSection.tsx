@@ -223,7 +223,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
             <div>
               <h2 className='text-2xl font-bold text-[#C99D55]  mb-6'>Write a Review</h2>
 
-              <form onSubmit={handleSubmit} className='bg-white rounded-2xl p-6 shadow-sm'>
+              <form onSubmit={handleSubmit} className=' bg-[#FAF5EE] border border-[#C99D55] border-2 rounded-2xl p-6 shadow-sm'>
                 <div className='mb-6'>
                   <label className='block text-gray-700 mb-2'>Your Rating</label>
                   <div className='flex'>
@@ -251,7 +251,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                       type='text'
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className='w-full px-4 py-2 border border-[#C99D55] rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
+                      className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
                       required
                     />
                   </div>
@@ -263,7 +263,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                       type='email'
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className='w-full px-4 py-2 border border-[#C99D55] rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
+                      className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
                       required
                     />
                   </div>
@@ -277,16 +277,16 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={4}
-                    className='w-full px-4 py-2 border border-[#C99D55] rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
+                    className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
                     required
                   ></textarea>
                 </div>
 
                 <div className='mb-6'>
-                  <label className='block text-gray-700 mb-2'>Upload Image (Optional)</label>
-                  <div className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center'>
-                    <p className='text-gray-500 text-sm mb-2'>Drop file here or click to upload</p>
-                    <p className='text-gray-400 text-xs'>
+                  <label className='block text-[#C99D55] mb-2'>Upload Image (Optional)</label>
+                  <div className='border-2 border-dashed border-[#C99D55] rounded-lg p-6 text-center'>
+                    <p className='text-[#C99D55] text-base font-medium mb-2'>Drop file here or click to upload</p>
+                    <p className='text-[#C99D55] text-xs'>
                       Allowed formats: JPEG, JPG, PNG, GIF. Max size: 1 MB
                     </p>
                   </div>
@@ -294,7 +294,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
 
                 <button
                   type='submit'
-                  className='w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-3 px-4 rounded-lg transition-colors'
+                  className='w-full bg-[#C99D55] hover:bg-amber-800 text-white font-bold py-3 px-4 rounded-lg transition-colors'
                   disabled={rating === 0}
                 >
                   Submit review
