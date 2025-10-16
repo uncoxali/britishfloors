@@ -193,7 +193,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                         </div>
                       </div>
                       <p className='text-gray-700 mb-4'>{review.comment}</p>
-                      <div className='flex items-center space-x-4'>
+                      <div className='flex items-center flex-row-reverse space-x-4 space-x-reverse'>
                         <button
                           onClick={() => handleLikeDislike(review.id, 'like')}
                           className='flex items-center space-x-1 text-gray-500 hover:text-[#C99D55] transition-colors'
@@ -251,7 +251,8 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                       type='text'
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
+                      placeholder="Name *"
+                      className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]  placeholder-[#C99D55]'
                       required
                     />
                   </div>
@@ -260,10 +261,11 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                       Email <span className='text-red-500'>*</span>
                     </label>
                     <input
-                      type='email'
+                      type='email  *'
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
+                      placeholder='email *'
+                      className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]  placeholder-[#C99D55]'
                       required
                     />
                   </div>
@@ -277,7 +279,8 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={4}
-                    className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]'
+                    placeholder='Your Review *'
+                    className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]  placeholder-[#C99D55]'
                     required
                   ></textarea>
                 </div>
@@ -292,13 +295,16 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                   </div>
                 </div>
 
-                <button
+                    <div className='flex justify-end'>
+                  <button
                   type='submit'
-                  className='w-full bg-[#C99D55] hover:bg-amber-800 text-white font-bold py-3 px-4 rounded-lg transition-colors'
+                  className='w-48  bg-[#C99D55] hover:bg-amber-800 text-white font-bold py-3 px-4 rounded-lg transition-colors '
                   disabled={rating === 0}
                 >
                   Submit review
                 </button>
+                    </div>
+               
               </form>
             </div>
           </div>
