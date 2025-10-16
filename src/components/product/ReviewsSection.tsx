@@ -226,7 +226,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
               <form onSubmit={handleSubmit} className=' bg-[#FAF5EE] border border-[#C99D55] border-2 rounded-2xl p-6 shadow-sm'>
                 <div className='mb-6'>
                   <label className='block text-gray-700 mb-2'>Your Rating</label>
-                  <div className='flex'>
+                  <div className='flex justify-end'>
                     {[...Array(5)].map((_, i) => (
                       <button
                         key={i}
@@ -244,9 +244,9 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
 
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-4'>
                   <div>
-                    <label className='block text-gray-700 mb-2'>
+                    {/* <label className='block text-gray-700 mb-2'>
                       Name <span className='text-red-500'>*</span>
-                    </label>
+                    </label> */}
                     <input
                       type='text'
                       value={name}
@@ -257,9 +257,9 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                     />
                   </div>
                   <div>
-                    <label className='block text-gray-700 mb-2'>
+                    {/* <label className='block text-gray-700 mb-2'>
                       Email <span className='text-red-500'>*</span>
-                    </label>
+                    </label> */}
                     <input
                       type='email  *'
                       value={email}
@@ -272,14 +272,14 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                 </div>
 
                 <div className='mb-4'>
-                  <label className='block text-gray-700 mb-2'>
+                  {/* <label className='block text-gray-700 mb-2'>
                     Your Review <span className='text-red-500'>*</span>
-                  </label>
+                  </label> */}
                   <textarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                     rows={4}
-                    placeholder='Your Review *'
+                    placeholder='Your Review'
                     className='w-full px-4 py-2 bg-white border border-[#C99D55] border-2 rounded-lg focus:ring-2 focus:ring-[#C99D55] focus:border-[#C99D55]  placeholder-[#C99D55]'
                     required
                   ></textarea>
