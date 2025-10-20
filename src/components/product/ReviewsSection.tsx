@@ -290,7 +290,7 @@ const ReviewsSection: React.FC<{ productId: string }> = ({ productId }) => {
                   <div className='border-2 border-dashed border-[#C99D55] rounded-lg p-6 text-center'>
                     <p className='text-[#C99D55] text-base font-medium mb-2'>Drop file here or click to upload</p>
                     <p className='text-[#C99D55] text-xs'>
-                      Allowed formats: JPEG, JPG, PNG, GIF. Max size: 1 MB
+                      Allowed formats: JPEG, JPG, PNG, GIF. Max size: 1 MB  
                     </p>
                   </div>
                 </div>
